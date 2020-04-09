@@ -119,12 +119,7 @@ class Textparser:
         # Deal with indices defined as string (e.g.: "0:4:1", "0,1,2,3", "0").
         if isinstance(indices, str):
             if ":" in indices:
-                return slice(
-                    *map(
-                        lambda x: int(x.strip()) if x.strip() else None,
-                        indices.split(":")[0:3],
-                    )
-                )
+                return slice(*map(lambda x: int(x.strip()) if x.strip() else None, indices.split(":")[0:3]))
             if "," in indices:
                 return [int(x) for x in indices.split(",")]
             return tuple(int(indices))
