@@ -1,0 +1,193 @@
+
+********************************************************************************
+** EXAMPLES FOR EXTRACTING BASIC FILE INFORMATION
+********************************************************************************
+>> tp = Textparser(./data/textparser.in)
+>> pprint(tp.path)
+<Textparser: './data/textparser.in' contains 15 lines>
+
+>> pprint(tp.path)
+'./data/textparser.in'
+
+>> pprint(tp.lines)
+15
+
+********************************************************************************
+** EXAMPLES FOR EXTRACTING TEXT LINES FROM INPUT FILE
+********************************************************************************
+>> Output all input lines prepend by row indices (Format: 00..99: line)
+>> tp.get_input_lines_with_indices(output=True, nbrFormat='2d')
+00: This is the first line.
+01: 
+02: Some dummy values:
+03: Frequency = 50 Hz
+04: FREQUENCY = 60 Hz
+05: FrEqUeNcY = 70 Hz
+06: frequency = 80 Hz
+07: 
+08: A 4x4 Matrix:
+09: 1  2  3  4
+10: 5  6  7  8
+11: 9  10 11 12
+12: 13 14 15 16
+13: 
+14: This is the very last line.
+
+>> Get all textlines from start to end.
+>> lines = tp.get_lines()
+>> pprint(lines)
+('This is the first line.\n'
+ '\n'
+ 'Some dummy values:\n'
+ 'Frequency = 50 Hz\n'
+ 'FREQUENCY = 60 Hz\n'
+ 'FrEqUeNcY = 70 Hz\n'
+ 'frequency = 80 Hz\n'
+ '\n'
+ 'A 4x4 Matrix:\n'
+ '1  2  3  4\n'
+ '5  6  7  8\n'
+ '9  10 11 12\n'
+ '13 14 15 16\n'
+ '\n'
+ 'This is the very last line.\n')
+
+>> Get first line as string with default end char '\n' appended.
+>> pprint(tp.get_lines(rows=0))
+'This is the first line.\n'
+
+>> Get last line as string with default end char '\n' appended.
+>> pprint(tp.get_lines(rows='-1'))
+'This is the very last line.\n'
+
+>> Get first and last line as string. Lines merged by '\n' and last line append by '\n'.
+>> pprint(tp.get_lines(rows='0, -1'))
+'This is the first line.\nThis is the very last line.\n'
+
+>> Get lines 3+4 as string, with lines merged by ';' and no end char appended.
+>> pprint(tp.get_lines(rows=(0.0, '-1.0'), merge=';', end='')
+'This is the first line.;This is the very last line.'
+
+>> Get all textlines in reverse order.
+>> pprint(tp.get_lines(rows='::-1'))
+('This is the very last line.\n'
+ '\n'
+ '13 14 15 16\n'
+ '9  10 11 12\n'
+ '5  6  7  8\n'
+ '1  2  3  4\n'
+ 'A 4x4 Matrix:\n'
+ '\n'
+ 'frequency = 80 Hz\n'
+ 'FrEqUeNcY = 70 Hz\n'
+ 'FREQUENCY = 60 Hz\n'
+ 'Frequency = 50 Hz\n'
+ 'Some dummy values:\n'
+ '\n'
+ 'This is the first line.\n')
+
+>> Get every second text line from line 3 onwards.
+>> tp.get_lines(rows='2::2')
+('Some dummy values:\n'
+ 'FREQUENCY = 60 Hz\n'
+ 'frequency = 80 Hz\n'
+ 'A 4x4 Matrix:\n'
+ '5  6  7  8\n'
+ '13 14 15 16\n'
+ 'This is the very last line.\n')
+
+********************************************************************************
+** EXAMPLES FOR METHODS GET_MATCH AND GET_MATCHES
+********************************************************************************
+>> Get all matches of 'FREQUENCY' (case insensitive)
+>> matches = tp.get_matches('FREQUENCY')
+>> pprint(matches)
+[(3, 'Frequency = 50 Hz\n'),
+ (4, 'FREQUENCY = 60 Hz\n'),
+ (5, 'FrEqUeNcY = 70 Hz\n'),
+ (6, 'frequency = 80 Hz\n')]
+
+>> Get first match of FREQUENCY (case sensitive) and unpack idx and line.
+>> idx, line = tp.get_match('FREQUENCY', ignoreCase=False)
+>> print(f'Line index: {idx}, Line string: {line}')
+Line index: 4, Line string: FREQUENCY = 60 Hz
+
+>> Get last match of 'freq' (case insensitive, partial)
+>> pprint(tp.get_matches('freq')[-1])
+(6, 'frequency = 80 Hz\n')
+
+********************************************************************************
+** EXAMPLES FOR EXTRACTING VALUES VIA THE GET_VALUES METHOD
+********************************************************************************
+>> Extract 4x4 matrix elements from textfile lines 10-13 as multi-line string.
+>> Note: The stop value of a slice is not included in Python (hence rows:='9:13')
+>> matrix_4x4 = tp.get_values(rows='9:13')
+>> print(matrix_4x4)
+1 2 3 4
+5 6 7 8
+9 10 11 12
+13 14 15 16
+
+>> pprint(matrix_4x4)
+'1 2 3 4\n5 6 7 8\n9 10 11 12\n13 14 15 16\n'
+
+>> Extract all 4x4 matrix elements from textfile. Join columns by ',', lines by ';'.
+>> matrix_4x4_formatted = tp.get_values(rows='9:13', merge=',', end=';')
+>> pprint(matrix_4x4_formatted)
+'1,2,3,4;5,6,7,8;9,10,11,12;13,14,15,16'
+
+>> Extract all matrix elements of the second row.
+>> matrix_2nd_row = tp.get_values(rows=10)
+>> pprint(matrix_2nd_row)
+'5 6 7 8\n'
+
+>> Extract all matrix elements of the second row. No end char.
+>> matrix_2nd_row_skip_end = tp.get_values(rows='10', end=None)
+>> pprint(matrix_2nd_row_formatted)
+'5 6 7 8'
+
+>> Extract single element from 2nd row and 2nd col from 4x4 matrix.
+>> element_r2c2 = tp.get_values(rows=10, cols=1)
+>> pprint(element_r2c2)
+'6'
+
+>> Extract second column of 4x4 matrix as multi-line string.
+>> matrix_2nd_col = tp.get_values(rows='9:13', cols='1.0')
+>> pprint(matrix_2nd_col)
+'2\n6\n10\n14\n'
+
+>> Extract last column of 4x4 matrix as comma separated string.
+>> Note: Use 'end' char instead of 'merge', as we join row values for a single column!!!
+>> matrix_last_col = tp.get_values(rows=12, cols=['-1.0'])
+>> pprint(matrix_last_col_formatted)
+'4\n8\n12\n16\n'
+
+>> Extract a 2x2 submatrix from the 4x4 matrix as multi-line string.
+>> matrix_2x2 = tp.get_values(rows='10.0, 11.0', cols='1.0, 2.0')
+>> print(matrix_2x2)
+6 7
+10 11
+
+>> Output 2x2 submatrix as cols merged by comma, lines merged by semicolon.
+>> Note: Last 'end' char is stripped off by default, unless 'end' is set to '\n'.
+>> matrix_2x2_formatted = tp.get_values(rows=[10, 11], cols=('1', '2.8'), merge=',', end=';')
+>> pprint(matrix_2x2_formatted)
+'6,7;10,11'
+
+********************************************************************************
+** EXAMPLES FOR SOME BASIC FILE OPERATIONS
+********************************************************************************
+>> Write 2x2 submatrix as multi-line string to './data/textparser.out'.
+>> Use append=False to overwrite a possible existing outfile.
+>> Textparser.write(./data/textparser.out, lines=matrix_2x2, append=False)
+
+>> Append formated 2x2 submatrix to './data/textparser.out'.
+>> Use append=True to append output to an existing outfile.
+>> Textparser.write(./data/textparser.out, lines=matrix_2x2_formatted, append=True)
+
+>> Output lines of created file './data/textparser.out' with row inidces to console.
+>> tp.read('./data/textparser.out')
+>> tp.get_input_lines_with_indices(output=True, nbrFormat='02d')
+00: 6 7
+01: 10 11
+02: 6,7;10,11
