@@ -34,18 +34,30 @@ if __name__ == "__main__":
     # -----------------------------------------------------------------------
     header("Examples for extracting basic file information")
 
-    # Initiate textparser object and load input file.
-    print(f">> tp = Textparser({INPUT_FILE})")
-    tp = Textparser(INPUT_FILE)
-    print(">> pprint(tp.path)")
+    print(">> Initiate textparser object with a multi-line string.")
+    print(f">> tp = Textparser(source='This is line 1.\\n'This is line 2.\\n')")
+    tp = Textparser(source="This is line 1.\nThis is line 2.")
+    print(">> pprint(tp)")
     pprint(tp)
 
-    print("\n>> pprint(tp.path)")
-    pprint(tp.path)
+    print("\n>> print(tp.source)")
+    pprint(tp.source)
 
     print("\n>> pprint(tp.lines)")
     pprint(tp.lines)
-    
+
+    print("\n>> Initiate textparser object with data from specified input file.")
+    print(f">> tp = Textparser(source={INPUT_FILE})")
+    tp = Textparser(source=INPUT_FILE)
+    print(">> pprint(tp)")
+    pprint(tp)
+
+    print("\n>> pprint(tp.source)")
+    pprint(tp.source)
+
+    print("\n>> pprint(tp.lines)")
+    pprint(tp.lines)
+
     # -----------------------------------------------------------------------
     # Examples for extracting single and multi-line strings.
     # -----------------------------------------------------------------------
@@ -188,7 +200,9 @@ if __name__ == "__main__":
     Textparser.write(OUTPUT_FILE, lines=f"{matrix_2x2_formatted}", append=True)
 
     print(f"\n>> Output lines of created file '{OUTPUT_FILE}' with row inidces to console.")
-    print(f">> tp.read('{OUTPUT_FILE}')")
-    tp.read(OUTPUT_FILE)
+    print(f">> tp.from_source(source='{OUTPUT_FILE}')")
+    tp.from_source(source=OUTPUT_FILE)
     print(">> tp.get_input_lines_with_indices(output=True, nbrFormat='02d')")
     tp.get_input_lines_with_indices(output=True, nbrFormat="02d")
+
+    header("All tests/examples completed")

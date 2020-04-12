@@ -7,35 +7,40 @@
 # @python:  3.6 or higher
 #######################################################################################
 """
-__version__ = "1.1.0"
+__version__ = "1.2.0"
+import os.path
 
 
 class Textparser:
     """Class to perform basic operations like search and data extraction on textfiles."""
 
-    def __init__(self, path):
-        """Reads specified textfile into memory when initializing Textparser object."""
-        self.read(path)
+    def __init__(self, source):
+        """Initalize Textparser object with data from textfile path or a multi-line string."""
+        self.from_source(source)
 
     def __repr__(self):
         """String representation of the textparser object."""
-        return f"<Textparser: '{self._path}' contains {self.lines} lines>"
+        return f"<Textparser: Data from '{self.source}' contains {self.lines} lines>"
 
     @property
-    def path(self):
-        """Returns the file path of the opened textfile."""
-        return self._path
+    def source(self):
+        """Returns the source of the imported data as string."""
+        return self._source
 
     @property
     def lines(self):
         """Returns number of textlines in the opened textfile."""
         return len(self._lines)
 
-    def read(self, path):
-        """Reads all textlines of the specified textfile into memory."""
-        self._path, self._lines = None, []
-        with open(path, "r") as infile:
-            self._path, self._lines = path, infile.readlines()
+    def from_source(self, source):
+        """Reads all textlines from specified source into memory and stores data in _lines.
+        Source can either be a valid textfile path or a multi-line string."""
+        self._source, self._lines = "String", []
+        if os.path.exists(source):
+            with open(source, "r") as infile:
+                self._source, self._lines = os.path.abspath(source), infile.readlines()
+            return
+        self._lines = source.splitlines()
 
     @staticmethod
     def write(path, lines, append=True):
@@ -51,7 +56,7 @@ class Textparser:
             return input_lines
 
         for input_line in input_lines:
-            print(input_line, end="")
+            print(input_line, end="" if input_line.endswith("\n") else "\n")
 
     def get_lines(self, rows=":", merge="\n", end="\n"):
         """Returns all textlines matching given row indices merged by the merge char.

@@ -2,12 +2,24 @@
 ********************************************************************************
 ** EXAMPLES FOR EXTRACTING BASIC FILE INFORMATION
 ********************************************************************************
->> tp = Textparser(./data/textparser.in)
->> pprint(tp.path)
-<Textparser: './data/textparser.in' contains 15 lines>
+>> Initiate textparser object with a multi-line string.
+>> tp = Textparser(source='This is line 1.\n'This is line 2.\n')
+>> pprint(tp)
+<Textparser: Data from 'String' contains 2 lines>
 
->> pprint(tp.path)
-'./data/textparser.in'
+>> print(tp.source)
+'String'
+
+>> pprint(tp.lines)
+2
+
+>> Initiate textparser object with data from specified input file.
+>> tp = Textparser(source=./data/textparser.in)
+>> pprint(tp)
+<Textparser: Data from 'C:\Dev\04_PyDev\csutils3\csutils\tests\data\textparser.in' contains 15 lines>
+
+>> pprint(tp.source)
+'C:\\Dev\\04_PyDev\\csutils3\\csutils\\tests\\data\\textparser.in'
 
 >> pprint(tp.lines)
 15
@@ -32,6 +44,7 @@
 12: 13 14 15 16
 13: 
 14: This is the very last line.
+
 
 >> Get all textlines from start to end.
 >> lines = tp.get_lines()
@@ -186,8 +199,12 @@ Line index: 4, Line string: FREQUENCY = 60 Hz
 >> Textparser.write(./data/textparser.out, lines=matrix_2x2_formatted, append=True)
 
 >> Output lines of created file './data/textparser.out' with row inidces to console.
->> tp.read('./data/textparser.out')
+>> tp.from_source(source='./data/textparser.out')
 >> tp.get_input_lines_with_indices(output=True, nbrFormat='02d')
 00: 6 7
 01: 10 11
 02: 6,7;10,11
+
+********************************************************************************
+** ALL TESTS/EXAMPLES COMPLETED
+********************************************************************************
