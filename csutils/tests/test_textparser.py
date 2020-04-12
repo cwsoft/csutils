@@ -36,7 +36,7 @@ if __name__ == "__main__":
 
     print(">> Initiate textparser object with a multi-line string.")
     print(f">> tp = Textparser(source='This is line 1.\\n'This is line 2.\\n')")
-    tp = Textparser(source="This is line 1.\nThis is line 2.")
+    tp = Textparser(source="This is line 1.\nThis is line 2.\n")
     print(">> pprint(tp)")
     pprint(tp)
 
@@ -46,7 +46,7 @@ if __name__ == "__main__":
     print("\n>> pprint(tp.lines)")
     pprint(tp.lines)
 
-    print("\n>> Initiate textparser object with data from specified input file.")
+    print("\n>> Initiate textparser object with data from input file.")
     print(f">> tp = Textparser(source={INPUT_FILE})")
     tp = Textparser(source=INPUT_FILE)
     print(">> pprint(tp)")
@@ -63,12 +63,11 @@ if __name__ == "__main__":
     # -----------------------------------------------------------------------
     header("Examples for extracting text lines from input file")
 
-    print(">> Output all input lines prepend by row indices (Format: 00..99: line)")
+    print(">> Output source lines prepend by it's row indices (00..99: line)")
     print(">> tp.get_input_lines_with_indices(output=True, nbrFormat='2d')")
     tp.get_input_lines_with_indices(output=True, nbrFormat="02d")
-    print()
 
-    print("\n>> Get all textlines from start to end.")
+    print("\n>> Get all source lines from start to end.")
     print(">> lines = tp.get_lines()")
     print(">> pprint(lines)")
     lines = tp.get_lines()
@@ -87,14 +86,14 @@ if __name__ == "__main__":
     pprint(tp.get_lines(rows="0, -1"))
 
     print("\n>> Get lines 3+4 as string, with lines merged by ';' and no end char appended.")
-    print(">> pprint(tp.get_lines(rows=(0.0, '-1.0'), merge=';', end='')")
-    pprint(tp.get_lines(rows=(0.0, "-1.0"), merge=";", end=""))
+    print(">> pprint(tp.get_lines(rows=(3.0, '4.0'), merge=';', end='')")
+    pprint(tp.get_lines(rows=(2.0, "3.0"), merge=";", end=""))
 
-    print("\n>> Get all textlines in reverse order.")
+    print("\n>> Get all source textlines in reverse order.")
     print(">> pprint(tp.get_lines(rows='::-1'))")
     pprint(tp.get_lines(rows="::-1"))
 
-    print("\n>> Get every second text line from line 3 onwards.")
+    print("\n>> Get every second text line starting from source line 3.")
     print(">> tp.get_lines(rows='2::2')")
     pprint(tp.get_lines(rows="2::2"))
 
@@ -110,7 +109,7 @@ if __name__ == "__main__":
     matches = tp.get_matches("FREQUENCY")
     pprint(matches)
 
-    print("\n>> Get first match of FREQUENCY (case sensitive) and unpack idx and line.")
+    print("\n>> Get tuple with first match of FREQUENCY (case sensitive) and unpack to idx and line.")
     print(">> idx, line = tp.get_match('FREQUENCY', ignoreCase=False)")
     print(">> print(f'Line index: {idx}, Line string: {line}')")
     idx, line = tp.get_match("FREQUENCY", ignoreCase=False)
@@ -120,15 +119,16 @@ if __name__ == "__main__":
     print(">> pprint(tp.get_matches('freq')[-1])")
     pprint(tp.get_matches("freq")[-1])
 
-    print("\n>> Get all lines containing at least one digit surrounded by at least on whitespace")
+    print("\n>> Get all source lines containing at least one digit surrounded by at least on whitespace")
     print(">> Note: If pattern starts with 'rx:', the part behind is evaluated as regular expression.")
+    print(">> Note: '\s+':= one or more white space chars, '\d+':= one ore more digits [0-9].")
     print(">> pprint(tp.get_matches(pattern='rx:\s+\d+\s+'), ignoreCase=True")
     print(tp.get_matches(pattern="rx:\s+\d+\s+", ignoreCase=True))
 
-    print("\n>> Get all lines containing a digit matching the range from 10, 20, 30, .., 90")
-    print(">> Note: This can easily be achieved using a regular expression.")
-    print(">> pprint(tp.get_matches(pattern='rx:\d0'), ignoreCase=True")
-    print(tp.get_matches(pattern="rx:\d0", ignoreCase=True))
+    print("\n>> Get all source lines containing a digit matching {10, 20, .., 70}")
+    print(">> Note: '[1-7]0':= matches single digit between 1-7 directly followed by 0.")
+    print(">> pprint(tp.get_matches(pattern='rx:[1-7]0'), ignoreCase=True")
+    print(tp.get_matches(pattern="rx:[1-7]0", ignoreCase=True))
 
     # -----------------------------------------------------------------------
     # Examples for extracting values via the get_values method.
@@ -145,50 +145,52 @@ if __name__ == "__main__":
     print(">> pprint(matrix_4x4)")
     pprint(matrix_4x4)
 
-    print("\n>> Extract all 4x4 matrix elements from textfile. Join columns by ',', lines by ';'.")
+    print("\n>> Extract 4x4 matrix elements from textfile, join columns by ',' and lines by ';'.")
+    print(">> Note: Last end char removed for multiple values by default unless end char is '\\n'.")
     print(">> matrix_4x4_formatted = tp.get_values(rows='9:13', merge=',', end=';')")
     matrix_4x4_formatted = tp.get_values(rows="9:13", merge=",", end=";")
     print(">> pprint(matrix_4x4_formatted)")
     pprint(matrix_4x4_formatted)
 
-    print("\n>> Extract all matrix elements of the second row.")
-    print(">> matrix_2nd_row = tp.get_values(rows=10)")
-    matrix_2nd_row = tp.get_values(rows=10)
-    print(">> pprint(matrix_2nd_row)")
-    pprint(matrix_2nd_row)
-
-    print("\n>> Extract all matrix elements of the second row. No end char.")
-    print(">> matrix_2nd_row_skip_end = tp.get_values(rows='10', end=None)")
-    matrix_2nd_row_skip_end = tp.get_values(rows="10", end=None)
-    print(">> pprint(matrix_2nd_row_formatted)")
-    pprint(matrix_2nd_row_skip_end)
-
-    print("\n>> Extract single element from 2nd row and 2nd col from 4x4 matrix.")
+    print("\n>> Extract single 4x4 matrix element from 2nd row and 2nd col.")
     print(">> element_r2c2 = tp.get_values(rows=10, cols=1)")
     element_r2c2 = tp.get_values(rows=10, cols=1)
     print(">> pprint(element_r2c2)")
     pprint(element_r2c2)
 
-    print("\n>> Extract second column of 4x4 matrix as multi-line string.")
+    print("\n>> Extract 4x4 matrix elements of the second row.")
+    print(">> matrix_2nd_row = tp.get_values(rows=10)")
+    matrix_2nd_row = tp.get_values(rows=10)
+    print(">> pprint(matrix_2nd_row)")
+    pprint(matrix_2nd_row)
+
+    print("\n>> Extract 4x4 matrix elements of the second row, join elements by ',' and lines by ';'.")
+    print(">> Note: Last end char removed for multiple values by default unless end char is '\\n'.")
+    print(">> matrix_2nd_row_skip_end = tp.get_values(rows='10', merge=',', end=';')")
+    matrix_2nd_row_skip_end = tp.get_values(rows="10", merge=",", end=';')
+    print(">> pprint(matrix_2nd_row_formatted)")
+    pprint(matrix_2nd_row_skip_end)
+
+    print("\n>> Extract 4x4 matrix elements of the second column as multi-line string.")
     print(">> matrix_2nd_col = tp.get_values(rows='9:13', cols='1.0')")
     matrix_2nd_col = tp.get_values(rows="9:13", cols="1.0")
     print(">> pprint(matrix_2nd_col)")
     pprint(matrix_2nd_col)
 
-    print("\n>> Extract last column of 4x4 matrix as comma separated string.")
-    print(">> Note: Use 'end' char instead of 'merge', as we join row values for a single column!!!")
-    print(">> matrix_last_col = tp.get_values(rows=12, cols=['-1.0'])")
-    matrix_last_col_formatted = tp.get_values(rows="9:13", cols=[-1.0])
+    print("\n>> Extract 4x4 matrix elements of second column, join elements by ','.")
+    print(">> Note: Set 'end' char instead 'merge', as we join row values in case of a single column!!!")
+    print(">> matrix_last_col = tp.get_values(rows=9:13, cols=['1.0'], end=',')")
+    matrix_last_col_formatted = tp.get_values(rows="9:13", cols=[1.0], end=",")
     print(">> pprint(matrix_last_col_formatted)")
     pprint(matrix_last_col_formatted)
 
-    print("\n>> Extract a 2x2 submatrix from the 4x4 matrix as multi-line string.")
+    print("\n>> Extract 2x2 submatrix from center of the 4x4 matrix as multi-line string.")
     print(">> matrix_2x2 = tp.get_values(rows='10.0, 11.0', cols='1.0, 2.0')")
     matrix_2x2 = tp.get_values(rows="10.0, 11.0", cols="1.0, 2.0")
     print(">> print(matrix_2x2)")
     print(matrix_2x2)
 
-    print(">> Output 2x2 submatrix as cols merged by comma, lines merged by semicolon.")
+    print(">> Extract 2x2 submatrix from center of the 4x4 matrix, join elements by ',' and lines by ';'.")
     print(">> Note: Last 'end' char is stripped off by default, unless 'end' is set to '\\n'.")
     print(">> matrix_2x2_formatted = tp.get_values(rows=[10, 11], cols=('1', '2.8'), merge=',', end=';')")
     matrix_2x2_formatted = tp.get_values(rows=[10, 11], cols=("1", "2.8"), merge=",", end=";")
@@ -200,12 +202,12 @@ if __name__ == "__main__":
     # -----------------------------------------------------------------------
     header("Examples for some basic file operations")
     print(f">> Write 2x2 submatrix as multi-line string to '{OUTPUT_FILE}'.")
-    print(">> Use append=False to overwrite a possible existing outfile.")
+    print(">> Set append=False to overwrite an possible existing outfile.")
     print(f">> Textparser.write({OUTPUT_FILE}, lines=matrix_2x2, append=False)")
     Textparser.write(OUTPUT_FILE, lines=matrix_2x2, append=False)
 
-    print(f"\n>> Append formated 2x2 submatrix to '{OUTPUT_FILE}'.")
-    print(">> Use append=True to append output to an existing outfile.")
+    print(f"\n>> Append formated 2x2 submatrix to existing '{OUTPUT_FILE}'.")
+    print(">> Set append=True to append output to an existing outfile.")
     print(f">> Textparser.write({OUTPUT_FILE}, lines=matrix_2x2_formatted, append=True)")
     Textparser.write(OUTPUT_FILE, lines=f"{matrix_2x2_formatted}", append=True)
 
