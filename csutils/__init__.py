@@ -1,6 +1,5 @@
 """
 #######################################################################################
-# Package: csutils
 # Collection of Python modules to ease basic tasks on textfiles.
 #
 # @package: csutils

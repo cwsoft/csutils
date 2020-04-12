@@ -1,13 +1,10 @@
 """
 #######################################################################################
-# Module: setup.py
 # Setup script for installing the csutils package via Python pip or setuptools.
 #
 # @package: csutils
 # @repo:    https://github.com/cwsoft/csutils
 # @author:  cwsoft
-# @version: 1.0.0
-# @release: 2020/04/09
 # @python:  3.6 or higher
 #######################################################################################
 """
