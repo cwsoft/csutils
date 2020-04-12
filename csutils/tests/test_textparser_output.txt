@@ -5,7 +5,7 @@
 >> Initiate textparser object with a multi-line string.
 >> tp = Textparser(source='This is line 1.\n'This is line 2.\n')
 >> pprint(tp)
-<Textparser: Data from 'String' contains 2 lines>
+<Textparser: Source 'String' with 2 lines>
 
 >> print(tp.source)
 'String'
@@ -16,7 +16,7 @@
 >> Initiate textparser object with data from specified input file.
 >> tp = Textparser(source=./data/textparser.in)
 >> pprint(tp)
-<Textparser: Data from 'C:\Dev\04_PyDev\csutils3\csutils\tests\data\textparser.in' contains 15 lines>
+<Textparser: Source 'C:\Dev\04_PyDev\csutils3\csutils\tests\data\textparser.in' with 15 lines>
 
 >> pprint(tp.source)
 'C:\\Dev\\04_PyDev\\csutils3\\csutils\\tests\\data\\textparser.in'
@@ -129,6 +129,16 @@ Line index: 4, Line string: FREQUENCY = 60 Hz
 >> pprint(tp.get_matches('freq')[-1])
 (6, 'frequency = 80 Hz\n')
 
+>> Get all lines containing at least one digit surrounded by at least on whitespace
+>> Note: If pattern starts with 'rx:', the part behind is evaluated as regular expression.
+>> pprint(tp.get_matches(pattern='rx:\s+\d+\s+'), ignoreCase=True
+[(3, 'Frequency = 50 Hz\n'), (4, 'FREQUENCY = 60 Hz\n'), (5, 'FrEqUeNcY = 70 Hz\n'), (6, 'frequency = 80 Hz\n'), (9, '1  2  3  4\n'), (10, '5  6  7  8\n'), (11, '9  10 11 12\n'), (12, '13 14 15 16\n')]
+
+>> Get all lines containing a digit matching the range from 10, 20, 30, .., 90
+>> Note: This can easily be achieved using a regular expression.
+>> pprint(tp.get_matches(pattern='rx:\d0'), ignoreCase=True
+[(3, 'Frequency = 50 Hz\n'), (4, 'FREQUENCY = 60 Hz\n'), (5, 'FrEqUeNcY = 70 Hz\n'), (6, 'frequency = 80 Hz\n'), (11, '9  10 11 12\n')]
+
 ********************************************************************************
 ** EXAMPLES FOR EXTRACTING VALUES VIA THE GET_VALUES METHOD
 ********************************************************************************
@@ -206,5 +216,5 @@ Line index: 4, Line string: FREQUENCY = 60 Hz
 02: 6,7;10,11
 
 ********************************************************************************
-** ALL TESTS/EXAMPLES COMPLETED
+** ALL TESTS/EXAMPLES SUCESSFULLY COMPLETED
 ********************************************************************************

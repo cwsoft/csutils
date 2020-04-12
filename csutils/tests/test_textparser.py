@@ -120,6 +120,16 @@ if __name__ == "__main__":
     print(">> pprint(tp.get_matches('freq')[-1])")
     pprint(tp.get_matches("freq")[-1])
 
+    print("\n>> Get all lines containing at least one digit surrounded by at least on whitespace")
+    print(">> Note: If pattern starts with 'rx:', the part behind is evaluated as regular expression.")
+    print(">> pprint(tp.get_matches(pattern='rx:\s+\d+\s+'), ignoreCase=True")
+    print(tp.get_matches(pattern="rx:\s+\d+\s+", ignoreCase=True))
+
+    print("\n>> Get all lines containing a digit matching the range from 10, 20, 30, .., 90")
+    print(">> Note: This can easily be achieved using a regular expression.")
+    print(">> pprint(tp.get_matches(pattern='rx:\d0'), ignoreCase=True")
+    print(tp.get_matches(pattern="rx:\d0", ignoreCase=True))
+
     # -----------------------------------------------------------------------
     # Examples for extracting values via the get_values method.
     # -----------------------------------------------------------------------
@@ -205,4 +215,4 @@ if __name__ == "__main__":
     print(">> tp.get_input_lines_with_indices(output=True, nbrFormat='02d')")
     tp.get_input_lines_with_indices(output=True, nbrFormat="02d")
 
-    header("All tests/examples completed")
+    header("All tests/examples sucessfully completed")

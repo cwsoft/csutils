@@ -7,8 +7,9 @@
 # @python:  3.6 or higher
 #######################################################################################
 """
-__version__ = "1.2.0"
+__version__ = "1.3.0"
 import os.path
+import re
 
 
 class Textparser:
@@ -20,7 +21,7 @@ class Textparser:
 
     def __repr__(self):
         """String representation of the textparser object."""
-        return f"<Textparser: Data from '{self.source}' contains {self.lines} lines>"
+        return f"<Textparser: Source '{self.source}' with {self.lines} lines>"
 
     @property
     def source(self):
@@ -97,12 +98,19 @@ class Textparser:
     def get_matches(self, pattern, ignoreCase=True, findAll=True):
         """Returns list of tuples with row index and textline of all matching patterns.
         Set findAll=False to return a tuple with the first matching pattern only."""
+        # Create escaped and compiled regex pattern if needed.
+        regex = None
+        if pattern.startswith("rx:"):
+            regex = pattern[3:]
+            regex = re.compile(regex, re.IGNORECASE) if ignoreCase else re.compile(regex)
+
+        # Loop over all input lines and check for matching patterns.
         matches = []
         for idx, line in enumerate(self._lines):
-            if ignoreCase:
+            if not regex and ignoreCase:
                 pattern, line = pattern.lower(), line.lower()
 
-            if pattern in line:
+            if (not regex and pattern in line) or (regex and re.search(regex, line)):
                 if not findAll:
                     return (idx, self.get_lines(idx))
                 matches.append((idx, self.get_lines(idx)))
