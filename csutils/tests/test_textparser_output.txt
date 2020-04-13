@@ -28,7 +28,7 @@
 ** EXAMPLES FOR EXTRACTING TEXT LINES FROM INPUT FILE
 ********************************************************************************
 >> Output source lines prepend by it's row indices (00..99: line)
->> tp.get_input_lines_with_indices(output=True, nbrFormat='2d')
+>> tp.get_numbered_source_lines(output=True, nbrFormat='2d')
 00: This is the first line.
 01: 
 02: Some dummy values:
@@ -139,6 +139,21 @@ Line index: 4, Line string: FREQUENCY = 60 Hz
 >> pprint(tp.get_matches(pattern='rx:[1-7]0'), ignoreCase=True
 [(3, 'Frequency = 50 Hz\n'), (4, 'FREQUENCY = 60 Hz\n'), (5, 'FrEqUeNcY = 70 Hz\n'), (11, '9  10 11 12\n')]
 
+>> Get source lines containing 'Frequency', where line before contains '60' and line after '80'.
+>> Note: Subpatterns are optional and defined rel. to the line matching the main pattern.
+>> Subpatterns is a collections of tuples: [(rowOffset1, subpattern1), .., (rowOffset2, subpattern2)]
+>> match = tp.get_matches(pattern='Frequency', subpattens=[(-1, '60'), (1, '80')])
+[(5, 'FrEqUeNcY = 70 Hz\n')]
+
+>> Get source lines containing 'Frequency', if number [50,60,70,80] is present two lines below.
+>> Note: Patterns starting with 'rx:' will perform a regular expression search on the source lines.
+>> match = tp.get_matches(pattern='Frequency', subpattens=(2, 'rx:[5-8]0'))
+[(3, 'Frequency = 50 Hz\n'), (4, 'FREQUENCY = 60 Hz\n')]
+
+>> Get first source line containing 'Frequency', if number [50,60,70,80] is present two lines below.
+>> match = tp.get_match(pattern='Frequency', subpattens=(2, 'rx:[5-8]0'))
+(3, 'Frequency = 50 Hz\n')
+
 ********************************************************************************
 ** EXAMPLES FOR EXTRACTING VALUES VIA THE GET_VALUES METHOD
 ********************************************************************************
@@ -212,7 +227,7 @@ Line index: 4, Line string: FREQUENCY = 60 Hz
 
 >> Output lines of created file './data/textparser.out' with row inidces to console.
 >> tp.from_source(source='./data/textparser.out')
->> tp.get_input_lines_with_indices(output=True, nbrFormat='02d')
+>> tp.get_numbered_source_lines(output=True, nbrFormat='02d')
 00: 6 7
 01: 10 11
 02: 6,7;10,11

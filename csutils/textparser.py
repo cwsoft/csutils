@@ -7,7 +7,7 @@
 # @python:  3.6 or higher
 #######################################################################################
 """
-__version__ = "1.3.0"
+__version__ = "1.4.0"
 import os.path
 import re
 
@@ -49,8 +49,8 @@ class Textparser:
         with open(path, "a" if append else "w") as outfile:
             outfile.writelines(lines)
 
-    def get_input_lines_with_indices(self, output=False, nbrFormat="5d"):
-        """Return input lines prepend by their corresponding row indices.
+    def get_numbered_source_lines(self, output=False, nbrFormat="5d"):
+        """Return source lines prepend by their corresponding row indices.
         Set output=True to dump the result to the console stdout."""
         input_lines = [f"{idx:{nbrFormat}}: {line}" for idx, line in enumerate(self._lines)]
         if not output:
@@ -91,26 +91,38 @@ class Textparser:
         # If end char="\n" and output has multiple values, add end char to ease output to console or file.
         return f"{output}{end}" if (end == "\n" and (merge in output or len(input_lines) > 1)) else output
 
-    def get_match(self, pattern, ignoreCase=True):
-        """Return tuple with row index and textline of the first row, matching the given pattern."""
-        return self.get_matches(pattern, ignoreCase, findAll=False)
+    def get_match(self, pattern, subpatterns=None, ignoreCase=True):
+        """Return tuple with row index and textline of the first row, matching the given pattern.
+        To narrow possible matches, one can specify as many optional subpatterns as needed. Subpatterns are
+        evaluated relative to the line matching the main pattern using the specified rowOffset. Subpatterns
+        are defined as follows: subpatterns = [(rowOffset1, subPattern1),..., (rowOffsetN, subPatternN)].
+        
+        Note: Patterns starting with 'rx:' will perform a regular expression search on the source lines.
+        Set ignoreCase=False to perform a case sensitive search on all specified search patterns.
+        Set findAll=False to return a tuple with row index and textline of the first matching result only."""
+        return self.get_matches(pattern, subpatterns, ignoreCase, findAll=False)
 
-    def get_matches(self, pattern, ignoreCase=True, findAll=True):
-        """Return list of tuples with row index and textline for all rows, matching the given pattern.
-        Set findAll=False to return a tuple with index and line of the the first matching row only."""
-        # Create a compiled regex pattern if pattern string starts with a regex flag.
-        regex = None
-        if pattern.startswith("rx:"):
-            regex = pattern[3:]
-            regex = re.compile(regex, re.IGNORECASE) if ignoreCase else re.compile(regex)
-
+    def get_matches(self, pattern, subpatterns=None, ignoreCase=True, findAll=True):
+        """Return list of tuples with row index and textline for all rows, matching given main pattern.
+        To narrow possible matches, one can specify as many optional subpatterns as needed. Subpatterns are
+        evaluated relative to the line matching the main pattern using the specified rowOffset. Subpatterns
+        are defined as follows: subpatterns = [(rowOffset1, subPattern1),..., (rowOffsetN, subPatternN)].
+        
+        Note: Patterns starting with 'rx:' will perform a regular expression search on the source lines.
+        Set ignoreCase=False to perform a case sensitive search on all specified search patterns.
+        Set findAll=False to return a tuple with row index and textline of the first matching result only."""
+        matches, regex = [], Textparser._get_compiled_regex(pattern, ignoreCase)
         # Loop over all input lines and check for matching patterns.
-        matches = []
         for idx, line in enumerate(self._lines):
             if not regex and ignoreCase:
                 pattern, line = pattern.lower(), line.lower()
 
+            # Find input lines matching the specified main pattern.
             if (not regex and pattern in line) or (regex and re.search(regex, line)):
+                # Check if all optional subpatterns match.
+                if not self._do_subpattern_match(idx, subpatterns, ignoreCase):
+                    continue
+
                 if not findAll:
                     return (idx, self.get_lines(idx))
                 matches.append((idx, self.get_lines(idx)))
@@ -142,3 +154,40 @@ class Textparser:
 
         # Assume remaining input to be a single integer or float (e.g.: 1, or 2.0).
         return [int(float(indices))]
+
+    @staticmethod
+    def _get_compiled_regex(pattern, ignoreCase):
+        """Return a compiled regex for the given pattern considering case flag."""
+        if not pattern.startswith("rx:"):
+            return None
+
+        # Create a compiled reges from given pattern.
+        return re.compile(pattern[3:], re.IGNORECASE) if ignoreCase else re.compile(pattern[3:])
+
+    def _do_subpattern_match(self, row, subpatterns, ignoreCase):
+        """Return True if all defined subpattern do match, otherwise False.
+        Subpatterns are Tuples with (rowOffset, subpattern) evaluated relative to the main pattern."""
+        if not subpatterns and not isinstance(subpatterns, (tuple, list, set)):
+            return True
+
+        # Pack single subpattern tuple into list so we can unpack as if user provided a list of tuples.
+        subpatterns = [subpatterns] if isinstance(subpatterns[0], int) else subpatterns
+
+        # Loop over all subpatterns: [(rowOffset1, subpattern1), .., (rowOffsetN, subpatternN)]
+        for rowOffset, subpattern in subpatterns:
+            # Check if specified rowOffset is valid.
+            rowIdx = row + int(float(rowOffset))
+            if rowIdx < 0 or rowIdx > self.lines - 1:
+                return False
+
+            # Extract subline from source defined by row offset and create compiled regex if needed.
+            subpattern, subline = str(subpattern), self._lines[rowIdx]
+            regex = Textparser._get_compiled_regex(subpattern, ignoreCase)
+            if not regex and ignoreCase:
+                subpattern, subline = subpattern.lower(), subline.lower()
+
+            # Check if actual subpattern matches the source line defined by row offset.
+            if not ((not regex and subpattern in subline) or (regex and re.search(regex, subline))):
+                return False
+
+        return True

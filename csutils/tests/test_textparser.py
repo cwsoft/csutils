@@ -64,8 +64,8 @@ if __name__ == "__main__":
     header("Examples for extracting text lines from input file")
 
     print(">> Output source lines prepend by it's row indices (00..99: line)")
-    print(">> tp.get_input_lines_with_indices(output=True, nbrFormat='2d')")
-    tp.get_input_lines_with_indices(output=True, nbrFormat="02d")
+    print(">> tp.get_numbered_source_lines(output=True, nbrFormat='2d')")
+    tp.get_numbered_source_lines(output=True, nbrFormat="02d")
 
     print("\n>> Get all source lines from start to end.")
     print(">> lines = tp.get_lines()")
@@ -129,6 +129,24 @@ if __name__ == "__main__":
     print(">> Note: '[1-7]0':= matches single digit between 1-7 directly followed by 0.")
     print(">> pprint(tp.get_matches(pattern='rx:[1-7]0'), ignoreCase=True")
     print(tp.get_matches(pattern="rx:[1-7]0", ignoreCase=True))
+
+    print("\n>> Get source lines containing 'Frequency', where line before contains '60' and line after '80'.")
+    print(">> Note: Subpatterns are optional and defined rel. to the line matching the main pattern.")
+    print(">> Subpatterns is a collections of tuples: [(rowOffset1, subpattern1), .., (rowOffset2, subpattern2)]")
+    print(">> match = tp.get_matches(pattern='Frequency', subpattens=[(-1, '60'), (1, '80')])")
+    match = tp.get_matches(pattern="Frequency", subpatterns=((-1, "60"), (1, "80")))
+    print(match)
+
+    print("\n>> Get source lines containing 'Frequency', if number [50,60,70,80] is present two lines below.")
+    print(">> Note: Patterns starting with 'rx:' will perform a regular expression search on the source lines.")
+    print(">> match = tp.get_matches(pattern='Frequency', subpattens=(2, 'rx:[5-8]0'))")
+    match = tp.get_matches(pattern="Frequency", subpatterns=(2, "rx:[5-8]0"))
+    print(match)
+
+    print("\n>> Get first source line containing 'Frequency', if number [50,60,70,80] is present two lines below.")
+    print(">> match = tp.get_match(pattern='Frequency', subpattens=(2, 'rx:[5-8]0'))")
+    match = tp.get_match(pattern="Frequency", subpatterns=(2, "rx:[5-8]0"))
+    print(match)
 
     # -----------------------------------------------------------------------
     # Examples for extracting values via the get_values method.
@@ -214,7 +232,7 @@ if __name__ == "__main__":
     print(f"\n>> Output lines of created file '{OUTPUT_FILE}' with row inidces to console.")
     print(f">> tp.from_source(source='{OUTPUT_FILE}')")
     tp.from_source(source=OUTPUT_FILE)
-    print(">> tp.get_input_lines_with_indices(output=True, nbrFormat='02d')")
-    tp.get_input_lines_with_indices(output=True, nbrFormat="02d")
+    print(">> tp.get_numbered_source_lines(output=True, nbrFormat='02d')")
+    tp.get_numbered_source_lines(output=True, nbrFormat="02d")
 
     header("All tests/examples sucessfully completed")
