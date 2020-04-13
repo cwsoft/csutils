@@ -60,8 +60,10 @@ class Textparser:
             print(input_line, end="" if input_line.endswith("\n") else "\n")
 
     def get_lines(self, rows=":", merge="\n", end="\n"):
-        """Return all textlines matching given row indices joined by merge char.
-        Row indices can be a slice or comma separated string, or a container with indices."""
+        """Return all textlines matching given row indices with lines joined by 'merge' char.
+        Row indices can be a number, slice or comma separated string, or a container with indices.
+        Examples for supported row indices: 1, 1.0, "1:10:1", "1,2,5", (1, 2, 5), ["1", "2.0", 5.0].
+        """
         rows = Textparser._get_validated_indices(rows)
         if isinstance(rows, slice):
             output = merge.join([line.rstrip("\n\r") for line in self._lines[rows]])
@@ -73,9 +75,13 @@ class Textparser:
 
     def get_values(self, rows, cols=":", sep=None, merge=" ", end="\n"):
         """Return all values matching the given row and column indices.
-        Row and col indices can be a slice or comma separated string, or a container with indices.
-        By default, column values are joined with merge char, rows are joined with end char.
-        Set merge="," and end=";" to join column values by comma and lines by semicolon."""
+        Row and col indices can be a number, slice or comma separated string, or a container with indices.
+        Examples for supported row/col indices: 1, 1.0, "1:10:1", "1,2,5", (1, 2, 5), ["1", "2.0", 5.0].
+        
+        The specified source rows are split into column parts using 'sep' (None:=split by whitespace).
+        By default, column values are joined with 'merge' char, rows are joined with 'end' char. The 'end'
+        char is always omitted for single values and for multiple values in case 'end' does not contain '\n'.
+        """
         cols = Textparser._get_validated_indices(cols)
         output, input_lines = "", self.get_lines(rows).splitlines()
         for line in input_lines:
@@ -85,31 +91,33 @@ class Textparser:
                 else:
                     output += f"{merge.join([line.split(sep)[idx].strip() for idx in cols])}{end}"
 
-        # Remove last merge char and last end char from output string by default.
+        # Remove last 'merge' char and last 'end' char from output string by default.
         output = output.rstrip(f"{merge}{end}")
 
-        # If end char="\n" and output has multiple values, add end char to ease output to console or file.
-        return f"{output}{end}" if (end == "\n" and (merge in output or len(input_lines) > 1)) else output
+        # Add 'end' char for multiple output values if 'end' contains "\n" to ease output to console or file.
+        return f"{output}{end}" if ("\n" in end and (merge in output or len(input_lines) > 1)) else output
 
     def get_match(self, pattern, subpatterns=None, ignoreCase=True):
         """Return tuple with row index and textline of the first row, matching the given main pattern.
         To narrow down matches, one can specify as many optional subpatterns as needed. Subpatterns are
         evaluated relative to the line matching the main pattern using the specified rowOffset. Subpatterns
-        are defined as follows: subpatterns = [(rowOffset1, subPattern1),..., (rowOffsetN, subPatternN)].
+        are defined as follows: subpatterns = [(rowOffset1, subPattern1), ..., (rowOffsetN, subPatternN)].
         
         Note: Patterns starting with 'rx:' will perform a regular expression search on the source lines.
-        Set ignoreCase=False to perform a case sensitive search on all specified search patterns."""
+        Set ignoreCase=False to perform a case sensitive search on all specified search patterns.
+        """
         return self.get_matches(pattern, subpatterns, ignoreCase, findAll=False)
 
     def get_matches(self, pattern, subpatterns=None, ignoreCase=True, findAll=True):
         """Return list of tuples with row index and textline for all rows, matching the given main pattern.
         To narrow down matches, one can specify as many optional subpatterns as needed. Subpatterns are
         evaluated relative to the line matching the main pattern using the specified rowOffset. Subpatterns
-        are defined as follows: subpatterns = [(rowOffset1, subPattern1),..., (rowOffsetN, subPatternN)].
+        are defined as follows: subpatterns = [(rowOffset1, subPattern1), ..., (rowOffsetN, subPatternN)].
         
         Note: Patterns starting with 'rx:' will perform a regular expression search on the source lines.
         Set ignoreCase=False to perform a case sensitive search on all specified search patterns.
-        Set findAll=False to return a tuple with row index and textline of the first matching result only."""
+        Set findAll=False to return a tuple with row index and textline of the first matching result only.
+        """
         matches, regex = [], Textparser._get_compiled_regex(pattern, ignoreCase)
         # Loop over all input lines and check for matching patterns.
         for idx, line in enumerate(self._lines):
@@ -139,7 +147,7 @@ class Textparser:
     @staticmethod
     def _get_validated_indices(indices):
         """Convert indices into a valid slice object or a list of integer indices."""
-        # Deal with indices defined as string (e.g.: "0:4:1", "0,1,2,3.0", "1.0").
+        # Deal with indices defined as string like: "0:4:1", "0,1,2,3.0", "1.0".
         if isinstance(indices, str):
             if ":" in indices:
                 return slice(*map(lambda x: int(x.strip()) if x.strip() else None, indices.split(":")[0:3]))
@@ -147,11 +155,11 @@ class Textparser:
                 return [int(float(x)) for x in indices.split(",")]
             return [int(float(indices))]
 
-        # Deal with collections like lists, tuples or sets (e.g.: ["0",1,"2",3]).
-        if isinstance(indices, (list, tuple, set)):
+        # Deal with collections like lists or tuples: ["0",1,"2",3], (0, 1.0, "2").
+        if isinstance(indices, (list, tuple)):
             return [int(float(x)) for x in indices]
 
-        # Assume remaining input to be a single integer or float (e.g.: 1, or 2.0).
+        # Assume remaining input to be a single number like: 1, 2.0.
         return [int(float(indices))]
 
     @staticmethod
@@ -166,7 +174,7 @@ class Textparser:
     def _do_subpattern_match(self, row, subpatterns, ignoreCase):
         """Return True if all defined subpattern do match, otherwise False.
         Subpatterns are Tuples with (rowOffset, subpattern) evaluated relative to the main pattern."""
-        if not subpatterns and not isinstance(subpatterns, (tuple, list, set)):
+        if not subpatterns and not isinstance(subpatterns, (tuple, list)):
             return True
 
         # Pack single subpattern tuple into list so we can unpack as if user provided a list of tuples.
