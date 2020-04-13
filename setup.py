@@ -19,7 +19,7 @@ setuptools.setup(
     long_description="Visit Github repository to learn more about the csutils package.",
     long_description_content_type="text/markdown",
     url="https://github.com/cwsoft/csutils",
-    packages=setuptools.find_packages(exclude=["tests"]),
+    packages=setuptools.find_packages(exclude=["tests", "docs"]),
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
