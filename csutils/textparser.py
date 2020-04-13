@@ -7,7 +7,7 @@
 # @python:  3.6 or higher
 #######################################################################################
 """
-__version__ = "1.4.0"
+__version__ = "1.5.0"
 import os.path
 import re
 
@@ -62,23 +62,30 @@ class Textparser:
     def get_lines(self, rows=":", merge="\n", end="\n"):
         """Return all textlines matching given row indices with lines joined by 'merge' char.
         Row indices can be a number, slice or comma separated string, or a container with indices.
-        Examples for supported row indices: 1, 1.0, "1:10:1", "1,2,5", (1, 2, 5), ["1", "2.0", 5.0].
+        Supported row indices: 1, 1.0, '1:10:1,50:100', '1:10:1', '1,2,5', (1, 2, 5), ['1', '2.0', 5.0].
         """
         rows = Textparser._get_validated_indices(rows)
-        if isinstance(rows, slice):
+        if isinstance(rows, list) and isinstance(rows[0], slice):
+            # output = merge.join([merge.join(self._lines[_slice]).rstrip("\n\r") for _slice in rows])
+            output = ""
+            for _slice in rows:
+                output += merge.join([r.rstrip("\n\r") for r in self._lines[_slice]]) + merge
+        elif isinstance(rows, slice):
             output = merge.join([line.rstrip("\n\r") for line in self._lines[rows]])
         else:
             output = merge.join([self._lines[idx].rstrip("\n\r") for idx in rows])
 
-        # Append end char to last line if specified.
+        # Remove last 'merge' char by default and append 'end' char to last line if specified.
+        output = output.rstrip(merge)
         return f"{output}{end}" if (end and not output.endswith(end)) else output
 
     def get_values(self, rows, cols=":", sep=None, merge=" ", end="\n"):
         """Return all values matching the given row and column indices.
         Row and col indices can be a number, slice or comma separated string, or a container with indices.
-        Examples for supported row/col indices: 1, 1.0, "1:10:1", "1,2,5", (1, 2, 5), ["1", "2.0", 5.0].
+        Supported row/col indices: 1, 1.0, '1:10:1,50:100', '1:10:1', '1,2,5', (1, 2, 5), ['1', '2.0', 5.0].
         
         The specified source rows are split into column parts using 'sep' (None:=split by whitespace).
+        Set col='0:2,2:4' ignores 'sep' and extracts values from row string indices (e.g. 'Line 1\\n'[0:2]).
         By default, column values are joined with 'merge' char, rows are joined with 'end' char. The 'end'
         char is always omitted for single values and for multiple values in case 'end' does not contain '\\n'.
         """
@@ -86,7 +93,9 @@ class Textparser:
         output, input_lines = "", self.get_lines(rows).splitlines()
         for line in input_lines:
             if line:
-                if isinstance(cols, slice):
+                if isinstance(cols, list) and isinstance(cols[0], slice):
+                    output += f"{merge.join([line[_slice].strip() for _slice in cols])}{end}"
+                elif isinstance(cols, slice):
                     output += f"{merge.join([col.strip() for col in line.split(sep)[cols]])}{end}"
                 else:
                     output += f"{merge.join([line.split(sep)[idx].strip() for idx in cols])}{end}"
@@ -147,12 +156,21 @@ class Textparser:
     @staticmethod
     def _get_validated_indices(indices):
         """Convert indices into a valid slice object or a list of integer indices."""
-        # Deal with indices defined as string like: "0:4:1", "0,1,2,3.0", "1.0".
+        # Deal with indices defined as string like: "0:20,25:50", "0:4:1", "0,1,2,3.0", "1.0".
         if isinstance(indices, str):
+            # List of slice objects defined as comma separated string: "0:20,25:50".
+            if ":" in indices and "," in indices:
+                return [
+                    slice(*map(lambda x: int(x.strip()) if x.strip() else None, parts.split(":")[0:3]))
+                    for parts in indices.split(",")
+                ]
+            # A single slice object defined as string: "0:4:1".
             if ":" in indices:
                 return slice(*map(lambda x: int(x.strip()) if x.strip() else None, indices.split(":")[0:3]))
+            # Number indices defined as comma separated string: "0,1,2,3.0", "1.0".
             if "," in indices:
                 return [int(float(x)) for x in indices.split(",")]
+            # Single number defined as string: "1", or "1.0".
             return [int(float(indices))]
 
         # Deal with collections like lists or tuples: ["0",1,"2",3], (0, 1.0, "2").

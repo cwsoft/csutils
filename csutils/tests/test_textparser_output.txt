@@ -16,13 +16,13 @@
 >> Initiate textparser object with data from input file.
 >> tp = Textparser(source=./data/textparser.in)
 >> pprint(tp)
-<Textparser: Source 'C:\Dev\04_PyDev\csutils3\csutils\tests\data\textparser.in' with 15 lines>
+<Textparser: Source 'C:\Dev\04_PyDev\csutils3\csutils\tests\data\textparser.in' with 20 lines>
 
 >> pprint(tp.source)
 'C:\\Dev\\04_PyDev\\csutils3\\csutils\\tests\\data\\textparser.in'
 
 >> pprint(tp.lines)
-15
+20
 
 ********************************************************************************
 ** EXAMPLES FOR EXTRACTING TEXT LINES FROM INPUT FILE
@@ -43,7 +43,12 @@
 11: 9  10 11 12
 12: 13 14 15 16
 13: 
-14: This is the very last line.
+14: A 3x3 Matrix as Fortran fixed format
+15: 123
+16: 456
+17: 789
+18: 
+19: This is the very last line.
 
 >> Get all source lines from start to end.
 >> lines = tp.get_lines()
@@ -62,6 +67,11 @@
  '9  10 11 12\n'
  '13 14 15 16\n'
  '\n'
+ 'A 3x3 Matrix as Fortran fixed format\n'
+ '123\n'
+ '456\n'
+ '789\n'
+ '\n'
  'This is the very last line.\n')
 
 >> Get first line as string with default end char '\n' appended.
@@ -79,10 +89,19 @@
 >> Get lines 3+4 as string, with lines merged by ';' and no end char appended.
 >> pprint(tp.get_lines(rows=(3.0, '4.0'), merge=';', end='')
 'Some dummy values:;Frequency = 50 Hz'
+>> pprint(tp.get_lines(rows='2.0, 3.0', merge=';', end='')
+'Some dummy values:;Frequency = 50 Hz'
+>> pprint(tp.get_lines(rows='2:3,3:4', merge=';', end='')
+'Some dummy values:;Frequency = 50 Hz'
 
 >> Get all source textlines in reverse order.
 >> pprint(tp.get_lines(rows='::-1'))
 ('This is the very last line.\n'
+ '\n'
+ '789\n'
+ '456\n'
+ '123\n'
+ 'A 3x3 Matrix as Fortran fixed format\n'
  '\n'
  '13 14 15 16\n'
  '9  10 11 12\n'
@@ -106,7 +125,16 @@
  'A 4x4 Matrix:\n'
  '5  6  7  8\n'
  '13 14 15 16\n'
- 'This is the very last line.\n')
+ 'A 3x3 Matrix as Fortran fixed format\n'
+ '456\n')
+
+>> Get all lines containing frequency and lines of the 4x4 matrix.
+>> tp.get_lines(rows='3,4,5,6,9,10,11,12,13', merge=';', end='')
+Frequency = 50 Hz;FREQUENCY = 60 Hz;FrEqUeNcY = 70 Hz;frequency = 80 Hz;1  2  3  4;5  6  7  8;9  10 11 12;13 14 15 16
+
+>> Get all lines containing frequency and all lines of the 4x4 matrix.
+>> tp.get_lines(rows='3:7:1, 9:13', merge=';', end='')
+Frequency = 50 Hz;FREQUENCY = 60 Hz;FrEqUeNcY = 70 Hz;frequency = 80 Hz;1  2  3  4;5  6  7  8;9  10 11 12;13 14 15 16
 
 ********************************************************************************
 ** EXAMPLES FOR METHODS GET_MATCH AND GET_MATCHES
@@ -214,23 +242,40 @@ Line index: 4, Line string: FREQUENCY = 60 Hz
 >> pprint(matrix_2x2_formatted)
 '6,7;10,11'
 
+>> Extract 3x3 submatrix from Fortran fixed format w/o spaces using multi-slice strings.
+>> Tipp: Using cols='0:1,1:2,2:3' allows to extract values as string indices from source line.
+>> matrix_3x3 = tp.get_values(rows='15:18', cols='0:1,1:2,2:3')
+>> print(matrix_3x3
+1 2 3
+4 5 6
+7 8 9
+
+>> pprint(matrix_3x3
+'1 2 3\n4 5 6\n7 8 9\n'
+
+>> Extract 3x3 submatrix from Fortran fixed format w/o spaces, join cols by ',' and rows by ';'
+>> matrix_3x3_formatted = tp.get_values(rows='15:18', cols='0:1,1:2,2:3'), merge=',', end=';'
+>> pprint(matrix_3x3_formatted)
+'1,2,3;4,5,6;7,8,9'
+
 ********************************************************************************
 ** EXAMPLES FOR SOME BASIC FILE OPERATIONS
 ********************************************************************************
->> Write 2x2 submatrix as multi-line string to './data/textparser.out'.
+>> Write 3x3 matrix as multi-line string to './data/textparser.out'.
 >> Set append=False to overwrite an possible existing outfile.
->> Textparser.write(./data/textparser.out, lines=matrix_2x2, append=False)
+>> Textparser.write(./data/textparser.out, lines=matrix_3x3, append=False)
 
->> Append formated 2x2 submatrix to existing './data/textparser.out'.
+>> Append formated 3x3 matrix to existing './data/textparser.out'.
 >> Set append=True to append output to an existing outfile.
->> Textparser.write(./data/textparser.out, lines=matrix_2x2_formatted, append=True)
+>> Textparser.write(./data/textparser.out, lines=matrix_3x3_formatted, append=True)
 
 >> Output lines of created file './data/textparser.out' with row inidces to console.
 >> tp.from_source(source='./data/textparser.out')
->> tp.get_numbered_source_lines(output=True, nbrFormat='02d')
-00: 6 7
-01: 10 11
-02: 6,7;10,11
+>> tp.get_numbered_source_lines(output=True, nbrFormat='d')
+0: 1 2 3
+1: 4 5 6
+2: 7 8 9
+3: 1,2,3;4,5,6;7,8,9
 
 ********************************************************************************
 ** ALL TESTS/EXAMPLES SUCESSFULLY COMPLETED

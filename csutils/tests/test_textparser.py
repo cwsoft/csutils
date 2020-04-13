@@ -88,6 +88,10 @@ if __name__ == "__main__":
     print("\n>> Get lines 3+4 as string, with lines merged by ';' and no end char appended.")
     print(">> pprint(tp.get_lines(rows=(3.0, '4.0'), merge=';', end='')")
     pprint(tp.get_lines(rows=(2.0, "3.0"), merge=";", end=""))
+    print(">> pprint(tp.get_lines(rows='2.0, 3.0', merge=';', end='')")
+    pprint(tp.get_lines(rows="2.0, 3.0", merge=";", end=""))
+    print(">> pprint(tp.get_lines(rows='2:3,3:4', merge=';', end='')")
+    pprint(tp.get_lines(rows="2:3,3:4", merge=";", end=""))
 
     print("\n>> Get all source textlines in reverse order.")
     print(">> pprint(tp.get_lines(rows='::-1'))")
@@ -96,6 +100,14 @@ if __name__ == "__main__":
     print("\n>> Get every second text line starting from source line 3.")
     print(">> tp.get_lines(rows='2::2')")
     pprint(tp.get_lines(rows="2::2"))
+
+    print("\n>> Get all lines containing frequency and lines of the 4x4 matrix.")
+    print(">> tp.get_lines(rows='3,4,5,6,9,10,11,12,13', merge=';', end='')")
+    print(tp.get_lines(rows="3,4,5,6,9,10,11,12,13", merge=";", end=""))
+
+    print("\n>> Get all lines containing frequency and all lines of the 4x4 matrix.")
+    print(">> tp.get_lines(rows='3:7:1, 9:13', merge=';', end='')")
+    print(tp.get_lines(rows="3:7:1, 9:13", merge=";", end=""))
 
     # -----------------------------------------------------------------------
     # Examples for get_match and get_matches method
@@ -130,20 +142,28 @@ if __name__ == "__main__":
     print(">> pprint(tp.get_matches(pattern='rx:[1-7]0'), ignoreCase=True")
     print(tp.get_matches(pattern="rx:[1-7]0", ignoreCase=True))
 
-    print("\n>> Get source lines containing 'Frequency', where line before contains '60' and line after '80'.")
+    print(
+        "\n>> Get source lines containing 'Frequency', where line before contains '60' and line after '80'."
+    )
     print(">> Note: Subpatterns are optional and defined rel. to the line matching the main pattern.")
-    print(">> Subpatterns is a collections of tuples: [(rowOffset1, subpattern1), .., (rowOffset2, subpattern2)]")
+    print(
+        ">> Subpatterns is a collections of tuples: [(rowOffset1, subpattern1), .., (rowOffset2, subpattern2)]"
+    )
     print(">> match = tp.get_matches(pattern='Frequency', subpattens=[(-1, '60'), (1, '80')])")
     match = tp.get_matches(pattern="Frequency", subpatterns=((-1, "60"), (1, "80")))
     print(match)
 
     print("\n>> Get source lines containing 'Frequency', if number [50,60,70,80] is present two lines below.")
-    print(">> Note: Patterns starting with 'rx:' will perform a regular expression search on the source lines.")
+    print(
+        ">> Note: Patterns starting with 'rx:' will perform a regular expression search on the source lines."
+    )
     print(">> match = tp.get_matches(pattern='Frequency', subpattens=(2, 'rx:[5-8]0'))")
     match = tp.get_matches(pattern="Frequency", subpatterns=(2, "rx:[5-8]0"))
     print(match)
 
-    print("\n>> Get first source line containing 'Frequency', if number [50,60,70,80] is present two lines below.")
+    print(
+        "\n>> Get first source line containing 'Frequency', if number [50,60,70,80] is present two lines below."
+    )
     print(">> match = tp.get_match(pattern='Frequency', subpattens=(2, 'rx:[5-8]0'))")
     match = tp.get_match(pattern="Frequency", subpatterns=(2, "rx:[5-8]0"))
     print(match)
@@ -185,7 +205,7 @@ if __name__ == "__main__":
     print("\n>> Extract 4x4 matrix elements of the second row, join elements by ',' and lines by ';'.")
     print(">> Note: Last end char removed for multiple values by default unless end char is '\\n'.")
     print(">> matrix_2nd_row_skip_end = tp.get_values(rows='10', merge=',', end=';')")
-    matrix_2nd_row_skip_end = tp.get_values(rows="10", merge=",", end=';')
+    matrix_2nd_row_skip_end = tp.get_values(rows="10", merge=",", end=";")
     print(">> pprint(matrix_2nd_row_formatted)")
     pprint(matrix_2nd_row_skip_end)
 
@@ -215,24 +235,39 @@ if __name__ == "__main__":
     print(">> pprint(matrix_2x2_formatted)")
     pprint(matrix_2x2_formatted)
 
+    print("\n>> Extract 3x3 submatrix from Fortran fixed format w/o spaces using multi-slice strings.")
+    print(">> Tipp: Using cols='0:1,1:2,2:3' allows to extract values as string indices from source line.")
+    print(">> matrix_3x3 = tp.get_values(rows='15:18', cols='0:1,1:2,2:3')")
+    matrix_3x3 = tp.get_values(rows="15:18", cols="0:1,1:2,2:3")
+    print(">> print(matrix_3x3")
+    print(matrix_3x3)
+    print(">> pprint(matrix_3x3")
+    pprint(matrix_3x3)
+
+    print("\n>> Extract 3x3 submatrix from Fortran fixed format w/o spaces, join cols by ',' and rows by ';'")
+    print(">> matrix_3x3_formatted = tp.get_values(rows='15:18', cols='0:1,1:2,2:3'), merge=',', end=';'")
+    matrix_3x3_formatted = tp.get_values(rows="15:18", cols="0:1,1:2,2:3", merge=",", end=";")
+    print(">> pprint(matrix_3x3_formatted)")
+    pprint(matrix_3x3_formatted)
+
     # -----------------------------------------------------------------------
     # Examples for some basic file operations.
     # -----------------------------------------------------------------------
     header("Examples for some basic file operations")
-    print(f">> Write 2x2 submatrix as multi-line string to '{OUTPUT_FILE}'.")
+    print(f">> Write 3x3 matrix as multi-line string to '{OUTPUT_FILE}'.")
     print(">> Set append=False to overwrite an possible existing outfile.")
-    print(f">> Textparser.write({OUTPUT_FILE}, lines=matrix_2x2, append=False)")
-    Textparser.write(OUTPUT_FILE, lines=matrix_2x2, append=False)
+    print(f">> Textparser.write({OUTPUT_FILE}, lines=matrix_3x3, append=False)")
+    Textparser.write(OUTPUT_FILE, lines=matrix_3x3, append=False)
 
-    print(f"\n>> Append formated 2x2 submatrix to existing '{OUTPUT_FILE}'.")
+    print(f"\n>> Append formated 3x3 matrix to existing '{OUTPUT_FILE}'.")
     print(">> Set append=True to append output to an existing outfile.")
-    print(f">> Textparser.write({OUTPUT_FILE}, lines=matrix_2x2_formatted, append=True)")
-    Textparser.write(OUTPUT_FILE, lines=f"{matrix_2x2_formatted}", append=True)
+    print(f">> Textparser.write({OUTPUT_FILE}, lines=matrix_3x3_formatted, append=True)")
+    Textparser.write(OUTPUT_FILE, lines=f"{matrix_3x3_formatted}", append=True)
 
     print(f"\n>> Output lines of created file '{OUTPUT_FILE}' with row inidces to console.")
     print(f">> tp.from_source(source='{OUTPUT_FILE}')")
     tp.from_source(source=OUTPUT_FILE)
-    print(">> tp.get_numbered_source_lines(output=True, nbrFormat='02d')")
-    tp.get_numbered_source_lines(output=True, nbrFormat="02d")
+    print(">> tp.get_numbered_source_lines(output=True, nbrFormat='d')")
+    tp.get_numbered_source_lines(output=True, nbrFormat="d")
 
     header("All tests/examples sucessfully completed")

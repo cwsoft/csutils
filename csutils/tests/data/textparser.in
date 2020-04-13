@@ -12,4 +12,9 @@ A 4x4 Matrix:
 9  10 11 12
 13 14 15 16
 
+A 3x3 Matrix as Fortran fixed format
+123
+456
+789
+
 This is the very last line.
