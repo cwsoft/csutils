@@ -80,7 +80,7 @@ class Textparser:
         
         The specified source rows are split into column parts using 'sep' (None:=split by whitespace).
         By default, column values are joined with 'merge' char, rows are joined with 'end' char. The 'end'
-        char is always omitted for single values and for multiple values in case 'end' does not contain '\n'.
+        char is always omitted for single values and for multiple values in case 'end' does not contain '\\n'.
         """
         cols = Textparser._get_validated_indices(cols)
         output, input_lines = "", self.get_lines(rows).splitlines()
@@ -94,7 +94,7 @@ class Textparser:
         # Remove last 'merge' char and last 'end' char from output string by default.
         output = output.rstrip(f"{merge}{end}")
 
-        # Add 'end' char for multiple output values if 'end' contains "\n" to ease output to console or file.
+        # Add 'end' char for multiple output values if 'end' contains '\\n' to ease output to console or file.
         return f"{output}{end}" if ("\n" in end and (merge in output or len(input_lines) > 1)) else output
 
     def get_match(self, pattern, subpatterns=None, ignoreCase=True):
