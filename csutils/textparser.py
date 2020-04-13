@@ -92,19 +92,18 @@ class Textparser:
         return f"{output}{end}" if (end == "\n" and (merge in output or len(input_lines) > 1)) else output
 
     def get_match(self, pattern, subpatterns=None, ignoreCase=True):
-        """Return tuple with row index and textline of the first row, matching the given pattern.
-        To narrow possible matches, one can specify as many optional subpatterns as needed. Subpatterns are
+        """Return tuple with row index and textline of the first row, matching the given main pattern.
+        To narrow down matches, one can specify as many optional subpatterns as needed. Subpatterns are
         evaluated relative to the line matching the main pattern using the specified rowOffset. Subpatterns
         are defined as follows: subpatterns = [(rowOffset1, subPattern1),..., (rowOffsetN, subPatternN)].
         
         Note: Patterns starting with 'rx:' will perform a regular expression search on the source lines.
-        Set ignoreCase=False to perform a case sensitive search on all specified search patterns.
-        Set findAll=False to return a tuple with row index and textline of the first matching result only."""
+        Set ignoreCase=False to perform a case sensitive search on all specified search patterns."""
         return self.get_matches(pattern, subpatterns, ignoreCase, findAll=False)
 
     def get_matches(self, pattern, subpatterns=None, ignoreCase=True, findAll=True):
-        """Return list of tuples with row index and textline for all rows, matching given main pattern.
-        To narrow possible matches, one can specify as many optional subpatterns as needed. Subpatterns are
+        """Return list of tuples with row index and textline for all rows, matching the given main pattern.
+        To narrow down matches, one can specify as many optional subpatterns as needed. Subpatterns are
         evaluated relative to the line matching the main pattern using the specified rowOffset. Subpatterns
         are defined as follows: subpatterns = [(rowOffset1, subPattern1),..., (rowOffsetN, subPatternN)].
         

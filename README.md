@@ -20,8 +20,7 @@ tp = Textparser(r"./your_input_textfile")
 print(tp)
 ```
 
-For a detailed introduction please check out the examples provided in the [tests](csutils/tests/) folder of this repository.
-
+For details, please have a look into the [API documentation](csutils/docs/textparser.pdf) and the [examples file](csutils/tests/test_textparser_output.txt) provided in the [tests](csutils/tests/) folder of this repository.
 
 Have fun 
 cwsoft
