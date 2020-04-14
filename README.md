@@ -16,11 +16,11 @@ pip install git+git://github.com/cwsoft/csutils
 ```python
 from csutils.textparser import Textparser
 
-tp = Textparser(r"./your_input_textfile")
+tp = Textparser(r"./your_input_file.txt")
 print(tp)
 ```
 
-For details, please have a look into the [API documentation](csutils/docs/textparser.pdf) and the [examples file](csutils/tests/test_textparser_output.txt) provided in the [tests](csutils/tests/) folder of this repository.
+For details, please have a look into the [API documentation](csutils/docs/textparser.pdf) and the examples files in the [docs](csutils/docs/) folder of this repository. To check your system compatibility, you may want to run the unittests provided in the [tests](csutils/tests/) folder.
 
 Have fun 
 cwsoft

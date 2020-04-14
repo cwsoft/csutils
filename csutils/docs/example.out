@@ -14,12 +14,12 @@
 2
 
 >> Initiate textparser object with data from input file.
->> tp = Textparser(source=./data/textparser.in)
+>> tp = Textparser(source=../tests/data/test.dat)
 >> pprint(tp)
-<Textparser: Source 'C:\Dev\04_PyDev\csutils3\csutils\tests\data\textparser.in' with 20 lines>
+<Textparser: Source 'C:\Dev\04_PyDev\csutils3\csutils\tests\data\test.dat' with 20 lines>
 
 >> pprint(tp.source)
-'C:\\Dev\\04_PyDev\\csutils3\\csutils\\tests\\data\\textparser.in'
+'C:\\Dev\\04_PyDev\\csutils3\\csutils\\tests\\data\\test.dat'
 
 >> pprint(tp.lines)
 20
@@ -261,16 +261,16 @@ Line index: 4, Line string: FREQUENCY = 60 Hz
 ********************************************************************************
 ** EXAMPLES FOR SOME BASIC FILE OPERATIONS
 ********************************************************************************
->> Write 3x3 matrix as multi-line string to './data/textparser.out'.
+>> Write 3x3 matrix as multi-line string to './dummy.out'.
 >> Set append=False to overwrite an possible existing outfile.
->> Textparser.write(./data/textparser.out, lines=matrix_3x3, append=False)
+>> Textparser.write(./dummy.out, lines=matrix_3x3, append=False)
 
->> Append formated 3x3 matrix to existing './data/textparser.out'.
+>> Append formated 3x3 matrix to existing './dummy.out'.
 >> Set append=True to append output to an existing outfile.
->> Textparser.write(./data/textparser.out, lines=matrix_3x3_formatted, append=True)
+>> Textparser.write(./dummy.out, lines=matrix_3x3_formatted, append=True)
 
->> Output lines of created file './data/textparser.out' with row inidces to console.
->> tp.from_source(source='./data/textparser.out')
+>> Output lines of created file './dummy.out' with row inidces to console.
+>> tp.from_source(source='./dummy.out')
 >> tp.get_numbered_source_lines(output=True, nbrFormat='d')
 0: 1 2 3
 1: 4 5 6

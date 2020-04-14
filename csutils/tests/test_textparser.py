@@ -1,7 +1,7 @@
 """
 #######################################################################################
 # Module: test_textparser.py
-# This module executes some tests and shows how the Textparser class can be used.
+# This module contains the unit tests for the Textparser class.
 #
 # @package: csutils.textparser
 # @author:  cwsoft
@@ -10,264 +10,258 @@
 """
 import os
 import sys
+import unittest
 from pprint import pprint
 
 # Monkey patch system path so we can access the csutils package without installing it.
 sys.path.append(os.path.abspath(r"../../"))
 from csutils.textparser import Textparser
 
-# Constants for input and output test data.
-INPUT_FILE = r"./data/textparser.in"
-OUTPUT_FILE = r"./data/textparser.out"
+# Global values
+INPUT_FILE = os.path.abspath(r"./data/test.dat")
+tp = Textparser(source=INPUT_FILE)
 
 
-def header(text, char="*", repeat=80):
-    """Prints a simple header"""
-    print(f"\n{char*repeat}")
-    print(f"{char*2} {text.upper()}")
-    print(f"{char*repeat}")
+class TextparserTest(unittest.TestCase):
+    def test_properties_file(self):
+        """Test class properties, __repr__, _lines with source from file."""
+        self.assertEqual(
+            str(tp), f"<Textparser: Source '{INPUT_FILE}' with 20 lines>",
+        )
+        self.assertEqual(tp.source, INPUT_FILE)
+        self.assertEqual(tp.lines, 20)
 
+    def test_properties_string(self):
+        """Test class properties, __repr__, _lines with source from string."""
+        _tp = Textparser(source="This is line 1.\nThis is line 2.\n")
+        self.assertEqual(str(_tp), r"<Textparser: Source 'String' with 2 lines>")
+        self.assertEqual(_tp.source, "String")
+        self.assertEqual(_tp.lines, 2)
 
-if __name__ == "__main__":
-    # -----------------------------------------------------------------------
-    # Output some infos about the read textfile.
-    # -----------------------------------------------------------------------
-    header("Examples for extracting basic file information")
+    def test_write_read_lines(self):
+        """Test methods write, from_source and _lines."""
+        # Write input to temporary file and append it.
+        data = "This is line 1.\nThis is line 2.\n"
+        Textparser.write(r"./tmp.out", data, append=False)
+        Textparser.write(r"./tmp.out", data, append=True)
 
-    print(">> Initiate textparser object with a multi-line string.")
-    print(f">> tp = Textparser(source='This is line 1.\\n'This is line 2.\\n')")
-    tp = Textparser(source="This is line 1.\nThis is line 2.\n")
-    print(">> pprint(tp)")
-    pprint(tp)
+        # Read content of temporary file and prepare output.
+        output = data + data
+        result = [f"{line}\n" for line in output.split("\n")][0:4]
+        _tp = Textparser(source=r"./tmp.out")
+        os.remove(r"./tmp.out")
 
-    print("\n>> print(tp.source)")
-    pprint(tp.source)
+        self.assertEqual(_tp._lines, result)
 
-    print("\n>> pprint(tp.lines)")
-    pprint(tp.lines)
+    def test_get_numbered_source_lines(self):
+        """Test method get_numbered_source_lines"""
+        data = "This is line 1.\nThis is line 2.\nThis is line 3.\nThis is line 4.\n"
+        result = ["0: This is line 1.", "1: This is line 2.", "2: This is line 3.", "3: This is line 4."]
+        _tp = Textparser(source=data)
+        self.assertEqual(_tp.get_numbered_source_lines(output=False, nbrFormat="d"), result)
 
-    print("\n>> Initiate textparser object with data from input file.")
-    print(f">> tp = Textparser(source={INPUT_FILE})")
-    tp = Textparser(source=INPUT_FILE)
-    print(">> pprint(tp)")
-    pprint(tp)
+    def test_get_lines_defaults(self):
+        """Test method get_lines with default parameters."""
+        # Test single row output.
+        result = "1  2  3  4\n"
+        lines = tp.get_lines(rows=9)
+        self.assertEqual(lines, result)
 
-    print("\n>> pprint(tp.source)")
-    pprint(tp.source)
+        lines = tp.get_lines(rows=9.0)
+        self.assertEqual(lines, result)
 
-    print("\n>> pprint(tp.lines)")
-    pprint(tp.lines)
+        lines = tp.get_lines(rows="9")
+        self.assertEqual(lines, result)
 
-    # -----------------------------------------------------------------------
-    # Examples for extracting single and multi-line strings.
-    # -----------------------------------------------------------------------
-    header("Examples for extracting text lines from input file")
+        lines = tp.get_lines(rows="9.0")
+        self.assertEqual(lines, result)
 
-    print(">> Output source lines prepend by it's row indices (00..99: line)")
-    print(">> tp.get_numbered_source_lines(output=True, nbrFormat='2d')")
-    tp.get_numbered_source_lines(output=True, nbrFormat="02d")
+        lines = tp.get_lines(rows="9.99")
+        self.assertEqual(lines, result)
 
-    print("\n>> Get all source lines from start to end.")
-    print(">> lines = tp.get_lines()")
-    print(">> pprint(lines)")
-    lines = tp.get_lines()
-    pprint(lines)
+        # Test multi-row output.
+        result = "1  2  3  4\n5  6  7  8\n9  10 11 12\n13 14 15 16\n"
+        lines = tp.get_lines(rows="9:13")
+        self.assertEqual(lines, result)
 
-    print("\n>> Get first line as string with default end char '\\n' appended.")
-    print(">> pprint(tp.get_lines(rows=0))")
-    pprint(tp.get_lines(rows=0))
+        lines = tp.get_lines(rows="9:13:1")
+        self.assertEqual(lines, result)
 
-    print("\n>> Get last line as string with default end char '\\n' appended.")
-    print(">> pprint(tp.get_lines(rows='-1'))")
-    pprint(tp.get_lines(rows="-1"))
+        lines = tp.get_lines(rows="9:10,10:11,11:12,12:13")
+        self.assertEqual(lines, result)
 
-    print("\n>> Get first and last line as string. Lines merged by '\\n' and last line append by '\\n'.")
-    print(">> pprint(tp.get_lines(rows='0, -1'))")
-    pprint(tp.get_lines(rows="0, -1"))
+        lines = tp.get_lines(rows="9:12:1, 12:13:1")
+        self.assertEqual(lines, result)
 
-    print("\n>> Get lines 3+4 as string, with lines merged by ';' and no end char appended.")
-    print(">> pprint(tp.get_lines(rows=(3.0, '4.0'), merge=';', end='')")
-    pprint(tp.get_lines(rows=(2.0, "3.0"), merge=";", end=""))
-    print(">> pprint(tp.get_lines(rows='2.0, 3.0', merge=';', end='')")
-    pprint(tp.get_lines(rows="2.0, 3.0", merge=";", end=""))
-    print(">> pprint(tp.get_lines(rows='2:3,3:4', merge=';', end='')")
-    pprint(tp.get_lines(rows="2:3,3:4", merge=";", end=""))
+        lines = tp.get_lines(rows="9:12:1:99, 12:13:1:99")
+        self.assertEqual(lines, result)
 
-    print("\n>> Get all source textlines in reverse order.")
-    print(">> pprint(tp.get_lines(rows='::-1'))")
-    pprint(tp.get_lines(rows="::-1"))
+        lines = tp.get_lines(rows="9,10,11,12")
+        self.assertEqual(lines, result)
 
-    print("\n>> Get every second text line starting from source line 3.")
-    print(">> tp.get_lines(rows='2::2')")
-    pprint(tp.get_lines(rows="2::2"))
+        lines = tp.get_lines(rows=(9, 10, 11, 12))
+        self.assertEqual(lines, result)
 
-    print("\n>> Get all lines containing frequency and lines of the 4x4 matrix.")
-    print(">> tp.get_lines(rows='3,4,5,6,9,10,11,12,13', merge=';', end='')")
-    print(tp.get_lines(rows="3,4,5,6,9,10,11,12,13", merge=";", end=""))
+        lines = tp.get_lines(rows=[9, 10, 11, 12])
+        self.assertEqual(lines, result)
 
-    print("\n>> Get all lines containing frequency and all lines of the 4x4 matrix.")
-    print(">> tp.get_lines(rows='3:7:1, 9:13', merge=';', end='')")
-    print(tp.get_lines(rows="3:7:1, 9:13", merge=";", end=""))
+        lines = tp.get_lines(rows=[9, "10", "11.0", "12.99"])
+        self.assertEqual(lines, result)
 
-    # -----------------------------------------------------------------------
-    # Examples for get_match and get_matches method
-    # -----------------------------------------------------------------------
-    # Find first match of FREQUENCY (case insensitive).
-    header("Examples for methods get_match and get_matches")
+        # Test slice with steps.
+        result = "1  2  3  4\n9  10 11 12\n"
+        lines = tp.get_lines(rows="9:13:2")
 
-    print(">> Get all matches of 'FREQUENCY' (case insensitive)")
-    print(">> matches = tp.get_matches('FREQUENCY')")
-    print(">> pprint(matches)")
-    matches = tp.get_matches("FREQUENCY")
-    pprint(matches)
+    def test_get_lines_formatted(self):
+        """Test method get_lines with custom formats specified."""
+        result = "1  2  3  4;9  10 11 12\n"
+        lines = tp.get_lines(rows="9:13:2", merge=";")
+        self.assertEqual(lines, result)
 
-    print("\n>> Get tuple with first match of FREQUENCY (case sensitive) and unpack to idx and line.")
-    print(">> idx, line = tp.get_match('FREQUENCY', ignoreCase=False)")
-    print(">> print(f'Line index: {idx}, Line string: {line}')")
-    idx, line = tp.get_match("FREQUENCY", ignoreCase=False)
-    print(f"Line index: {idx}, Line string: {line}", end="")
+        result = "1  2  3  4;9  10 11 12"
+        lines = tp.get_lines(rows="9:13:2", merge=";", end="?")
+        self.assertEqual(lines, result)
 
-    print("\n>> Get last match of 'freq' (case insensitive, partial)")
-    print(">> pprint(tp.get_matches('freq')[-1])")
-    pprint(tp.get_matches("freq")[-1])
+        result = "1  2  3  4;9  10 11 12\r\n"
+        lines = tp.get_lines(rows="9:13:2", merge=";", end="\r\n")
+        self.assertEqual(lines, result)
 
-    print("\n>> Get all source lines containing at least one digit surrounded by at least on whitespace")
-    print(">> Note: If pattern starts with 'rx:', the part behind is evaluated as regular expression.")
-    print(">> Note: '\s+':= one or more white space chars, '\d+':= one ore more digits [0-9].")
-    print(">> pprint(tp.get_matches(pattern='rx:\s+\d+\s+'), ignoreCase=True")
-    print(tp.get_matches(pattern="rx:\s+\d+\s+", ignoreCase=True))
+    def test_get_values_defaults(self):
+        """Test method get_values with default values."""
+        result = "Frequency = 50 Hz\nFREQUENCY = 60 Hz\nFrEqUeNcY = 70 Hz\nfrequency = 80 Hz\n"
+        values = tp.get_values(rows="3:7")
+        self.assertEqual(values, result)
 
-    print("\n>> Get all source lines containing a digit matching {10, 20, .., 70}")
-    print(">> Note: '[1-7]0':= matches single digit between 1-7 directly followed by 0.")
-    print(">> pprint(tp.get_matches(pattern='rx:[1-7]0'), ignoreCase=True")
-    print(tp.get_matches(pattern="rx:[1-7]0", ignoreCase=True))
+        result = "50 Hz\n60 Hz\n70 Hz\n80 Hz\n"
+        values = tp.get_values(rows="3:7", cols="2, 3")
+        self.assertEqual(values, result)
 
-    print(
-        "\n>> Get source lines containing 'Frequency', where line before contains '60' and line after '80'."
-    )
-    print(">> Note: Subpatterns are optional and defined rel. to the line matching the main pattern.")
-    print(
-        ">> Subpatterns is a collections of tuples: [(rowOffset1, subpattern1), .., (rowOffset2, subpattern2)]"
-    )
-    print(">> match = tp.get_matches(pattern='Frequency', subpattens=[(-1, '60'), (1, '80')])")
-    match = tp.get_matches(pattern="Frequency", subpatterns=((-1, "60"), (1, "80")))
-    print(match)
+    def test_get_values_formatted(self):
+        """Test method get_values with formatted output."""
+        result = "Frequency,=,50,Hz\nFREQUENCY,=,60,Hz\nFrEqUeNcY,=,70,Hz\nfrequency,=,80,Hz\n"
+        values = tp.get_values(rows="3:7", merge=",")
+        self.assertEqual(values, result)
 
-    print("\n>> Get source lines containing 'Frequency', if number [50,60,70,80] is present two lines below.")
-    print(
-        ">> Note: Patterns starting with 'rx:' will perform a regular expression search on the source lines."
-    )
-    print(">> match = tp.get_matches(pattern='Frequency', subpattens=(2, 'rx:[5-8]0'))")
-    match = tp.get_matches(pattern="Frequency", subpatterns=(2, "rx:[5-8]0"))
-    print(match)
+        result = "Frequency,=,50,Hz|FREQUENCY,=,60,Hz|FrEqUeNcY,=,70,Hz|frequency,=,80,Hz"
+        values = tp.get_values(rows="3:7", merge=",", end="|")
+        self.assertEqual(values, result)
 
-    print(
-        "\n>> Get first source line containing 'Frequency', if number [50,60,70,80] is present two lines below."
-    )
-    print(">> match = tp.get_match(pattern='Frequency', subpattens=(2, 'rx:[5-8]0'))")
-    match = tp.get_match(pattern="Frequency", subpatterns=(2, "rx:[5-8]0"))
-    print(match)
+        result = "50 Hz,60 Hz,70 Hz,80 Hz"
+        values = tp.get_values(rows="3:7", cols="2, 3", end=",")
+        self.assertEqual(values, result)
 
-    # -----------------------------------------------------------------------
-    # Examples for extracting values via the get_values method.
-    # -----------------------------------------------------------------------
-    # Find start of 4x4 matrix and extract the matrix as multi-line string.
-    header("Examples for extracting values via the get_values method")
+        result = "50->Hz,60->Hz,70->Hz,80->Hz"
+        values = tp.get_values(rows="3:7", cols="2, 3", merge="->", end=",")
+        self.assertEqual(values, result)
 
-    print(">> Extract 4x4 matrix elements from textfile lines 10-13 as multi-line string.")
-    print(">> Note: The stop value of a slice is not included in Python (hence rows:='9:13')")
-    print(f">> matrix_4x4 = tp.get_values(rows='9:13')")
-    matrix_4x4 = tp.get_values(rows="9:13")
-    print(">> print(matrix_4x4)")
-    print(matrix_4x4)
-    print(">> pprint(matrix_4x4)")
-    pprint(matrix_4x4)
+        result = "50 Hz\n60 Hz\n70 Hz\n80 Hz\n"
+        values = tp.get_values(rows="3:7", cols=1, sep="=")
+        self.assertEqual(values, result)
 
-    print("\n>> Extract 4x4 matrix elements from textfile, join columns by ',' and lines by ';'.")
-    print(">> Note: Last end char removed for multiple values by default unless end char is '\\n'.")
-    print(">> matrix_4x4_formatted = tp.get_values(rows='9:13', merge=',', end=';')")
-    matrix_4x4_formatted = tp.get_values(rows="9:13", merge=",", end=";")
-    print(">> pprint(matrix_4x4_formatted)")
-    pprint(matrix_4x4_formatted)
+        result = "50 Hz,60 Hz,70 Hz,80 Hz"
+        values = tp.get_values(rows="3:7", cols=1, sep="=", end=",")
+        self.assertEqual(values, result)
 
-    print("\n>> Extract single 4x4 matrix element from 2nd row and 2nd col.")
-    print(">> element_r2c2 = tp.get_values(rows=10, cols=1)")
-    element_r2c2 = tp.get_values(rows=10, cols=1)
-    print(">> pprint(element_r2c2)")
-    pprint(element_r2c2)
+        result = "1 2 3\n4 5 6\n7 8 9\n"
+        values = tp.get_values(rows="15:18", cols="0:1,1:2,2:3")
+        self.assertEqual(values, result)
 
-    print("\n>> Extract 4x4 matrix elements of the second row.")
-    print(">> matrix_2nd_row = tp.get_values(rows=10)")
-    matrix_2nd_row = tp.get_values(rows=10)
-    print(">> pprint(matrix_2nd_row)")
-    pprint(matrix_2nd_row)
+        result = "1,2,3;4,5,6;7,8,9"
+        values = tp.get_values(rows="15:18", cols="0:1,1:2,2:3", merge=",", end=";")
+        self.assertEqual(values, result)
 
-    print("\n>> Extract 4x4 matrix elements of the second row, join elements by ',' and lines by ';'.")
-    print(">> Note: Last end char removed for multiple values by default unless end char is '\\n'.")
-    print(">> matrix_2nd_row_skip_end = tp.get_values(rows='10', merge=',', end=';')")
-    matrix_2nd_row_skip_end = tp.get_values(rows="10", merge=",", end=";")
-    print(">> pprint(matrix_2nd_row_formatted)")
-    pprint(matrix_2nd_row_skip_end)
+    def test_get_match(self):
+        """Test method get_match."""
+        # Test simple main pattern.
+        result = [
+            (3, "Frequency = 50 Hz\n"),
+            (4, "FREQUENCY = 60 Hz\n"),
+            (5, "FrEqUeNcY = 70 Hz\n"),
+            (6, "frequency = 80 Hz\n"),
+        ]
+        matches = tp.get_match(pattern="Freq")
+        self.assertEqual(matches, result[0])
 
-    print("\n>> Extract 4x4 matrix elements of the second column as multi-line string.")
-    print(">> matrix_2nd_col = tp.get_values(rows='9:13', cols='1.0')")
-    matrix_2nd_col = tp.get_values(rows="9:13", cols="1.0")
-    print(">> pprint(matrix_2nd_col)")
-    pprint(matrix_2nd_col)
+        matches = tp.get_match(pattern="FrEq", ignoreCase=False)
+        self.assertEqual(matches, result[2])
 
-    print("\n>> Extract 4x4 matrix elements of second column, join elements by ','.")
-    print(">> Note: Set 'end' char instead 'merge', as we join row values in case of a single column!!!")
-    print(">> matrix_last_col = tp.get_values(rows=9:13, cols=['1.0'], end=',')")
-    matrix_last_col_formatted = tp.get_values(rows="9:13", cols=[1.0], end=",")
-    print(">> pprint(matrix_last_col_formatted)")
-    pprint(matrix_last_col_formatted)
+        matches = tp.get_match(pattern="NOT_CONTAINED")
+        self.assertEqual(matches, (None, None))
 
-    print("\n>> Extract 2x2 submatrix from center of the 4x4 matrix as multi-line string.")
-    print(">> matrix_2x2 = tp.get_values(rows='10.0, 11.0', cols='1.0, 2.0')")
-    matrix_2x2 = tp.get_values(rows="10.0, 11.0", cols="1.0, 2.0")
-    print(">> print(matrix_2x2)")
-    print(matrix_2x2)
+        # Test regex patterns and subpatterns.
+        matches = tp.get_match(pattern="rx:Freq.*[6-7]0")
+        self.assertEqual(matches, result[1])
 
-    print(">> Extract 2x2 submatrix from center of the 4x4 matrix, join elements by ',' and lines by ';'.")
-    print(">> Note: Last 'end' char is stripped off by default, unless 'end' is set to '\\n'.")
-    print(">> matrix_2x2_formatted = tp.get_values(rows=[10, 11], cols=('1', '2.8'), merge=',', end=';')")
-    matrix_2x2_formatted = tp.get_values(rows=[10, 11], cols=("1", "2.8"), merge=",", end=";")
-    print(">> pprint(matrix_2x2_formatted)")
-    pprint(matrix_2x2_formatted)
+        matches = tp.get_match(pattern="rx:Freq", subpatterns=(-1, "rx:[0-9]{2}"))
+        self.assertEqual(matches, result[1])
 
-    print("\n>> Extract 3x3 submatrix from Fortran fixed format w/o spaces using multi-slice strings.")
-    print(">> Tipp: Using cols='0:1,1:2,2:3' allows to extract values as string indices from source line.")
-    print(">> matrix_3x3 = tp.get_values(rows='15:18', cols='0:1,1:2,2:3')")
-    matrix_3x3 = tp.get_values(rows="15:18", cols="0:1,1:2,2:3")
-    print(">> print(matrix_3x3")
-    print(matrix_3x3)
-    print(">> pprint(matrix_3x3")
-    pprint(matrix_3x3)
+        matches = tp.get_match(pattern="rx:FREQ", subpatterns=(-1, "rx:[0-9]{2}"), ignoreCase=False)
+        self.assertEqual(matches, result[1])
 
-    print("\n>> Extract 3x3 submatrix from Fortran fixed format w/o spaces, join cols by ',' and rows by ';'")
-    print(">> matrix_3x3_formatted = tp.get_values(rows='15:18', cols='0:1,1:2,2:3'), merge=',', end=';'")
-    matrix_3x3_formatted = tp.get_values(rows="15:18", cols="0:1,1:2,2:3", merge=",", end=";")
-    print(">> pprint(matrix_3x3_formatted)")
-    pprint(matrix_3x3_formatted)
+        matches = tp.get_match(
+            pattern="rx:Freq", subpatterns=[(1, "rx:[0-9]{2}"), (-1, "DUMMY")], ignoreCase=False
+        )
+        self.assertEqual(matches, (None, None))
 
-    # -----------------------------------------------------------------------
-    # Examples for some basic file operations.
-    # -----------------------------------------------------------------------
-    header("Examples for some basic file operations")
-    print(f">> Write 3x3 matrix as multi-line string to '{OUTPUT_FILE}'.")
-    print(">> Set append=False to overwrite an possible existing outfile.")
-    print(f">> Textparser.write({OUTPUT_FILE}, lines=matrix_3x3, append=False)")
-    Textparser.write(OUTPUT_FILE, lines=matrix_3x3, append=False)
+    def test_get_matches(self):
+        """Test method get_matches and get_match."""
+        # Test simple main pattern.
+        result = [
+            (3, "Frequency = 50 Hz\n"),
+            (4, "FREQUENCY = 60 Hz\n"),
+            (5, "FrEqUeNcY = 70 Hz\n"),
+            (6, "frequency = 80 Hz\n"),
+        ]
+        matches = tp.get_matches(pattern="Freq")
+        self.assertEqual(matches, result)
 
-    print(f"\n>> Append formated 3x3 matrix to existing '{OUTPUT_FILE}'.")
-    print(">> Set append=True to append output to an existing outfile.")
-    print(f">> Textparser.write({OUTPUT_FILE}, lines=matrix_3x3_formatted, append=True)")
-    Textparser.write(OUTPUT_FILE, lines=f"{matrix_3x3_formatted}", append=True)
+        matches = tp.get_matches(pattern="NOT_CONTAINED")
+        self.assertEqual(matches, [(None, None)])
 
-    print(f"\n>> Output lines of created file '{OUTPUT_FILE}' with row inidces to console.")
-    print(f">> tp.from_source(source='{OUTPUT_FILE}')")
-    tp.from_source(source=OUTPUT_FILE)
-    print(">> tp.get_numbered_source_lines(output=True, nbrFormat='d')")
-    tp.get_numbered_source_lines(output=True, nbrFormat="d")
+        matches = tp.get_matches(pattern="FrEq", ignoreCase=True)
+        self.assertEqual(matches, result)
 
-    header("All tests/examples sucessfully completed")
+        matches = tp.get_matches(pattern="FrEq", ignoreCase=False)
+        self.assertEqual(matches, [result[2]])
+
+        matches = tp.get_matches(pattern="FrEq", ignoreCase=False, findAll=False)
+        self.assertEqual(matches, result[2])
+
+        # Test regex main pattern.
+        matches = tp.get_matches(pattern="rx:Freq")
+        self.assertEqual(matches, result)
+
+        matches = tp.get_matches(pattern="rx:Freq.*[6-7]0")
+        self.assertEqual(matches, result[1:3])
+
+        matches = tp.get_matches(pattern="rx:Freq.*[6-7]0", ignoreCase=False)
+        self.assertEqual(matches, [(None, None)])
+
+        # Test subpatterns.
+        matches = tp.get_matches(pattern="rx:Freq", subpatterns=(-1, "rx:[0-9]{2}"))
+        self.assertEqual(matches, result[1:])
+
+        matches = tp.get_matches(pattern="rx:Freq", subpatterns=(1, "rx:[0-9]{2}"))
+        self.assertEqual(matches, result[:3])
+
+        matches = tp.get_matches(pattern="rx:Freq", subpatterns=[(1, "rx:[0-9]{2}"), (-1, "DUMMY")])
+        self.assertEqual(matches, [result[0]])
+
+        matches = tp.get_matches(
+            pattern="rx:Freq", subpatterns=[(1, "rx:[0-9]{2}"), (-1, "DUMMY")], ignoreCase=False
+        )
+        self.assertEqual(matches, [(None, None)])
+
+        matches = tp.get_matches(
+            pattern="rx:Freq",
+            subpatterns=[(1, "rx:[0-9]{2}"), (-1, "DUMMY")],
+            ignoreCase=False,
+            findAll=False,
+        )
+        self.assertEqual(matches, (None, None))
+
+        matches = tp.get_matches(pattern="rx:Freq", subpatterns=(999, "rx:[0-9]{2}"))
+        self.assertEqual(matches, [(None, None)])
+
+        matches = tp.get_matches(pattern="rx:Freq", subpatterns=(-999, "rx:[0-9]{2}"))
+        self.assertEqual(matches, [(None, None)])

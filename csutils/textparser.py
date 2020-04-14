@@ -63,6 +63,7 @@ class Textparser:
         """Return all textlines matching given row indices with lines joined by 'merge' char.
         Row indices can be a number, slice or comma separated string, or a container with indices.
         Supported row indices: 1, 1.0, '1:10:1,50:100', '1:10:1', '1,2,5', (1, 2, 5), ['1', '2.0', 5.0].
+        Note: The 'end' char is omitted for empty output and in case 'end' does not contain '\\n'.
         """
         rows = Textparser._get_validated_indices(rows)
         if isinstance(rows, list) and isinstance(rows[0], slice):
@@ -75,9 +76,11 @@ class Textparser:
         else:
             output = merge.join([self._lines[idx].rstrip("\n\r") for idx in rows])
 
-        # Remove last 'merge' char by default and append 'end' char to last line if specified.
-        output = output.rstrip(merge)
-        return f"{output}{end}" if (end and not output.endswith(end)) else output
+        # Remove last 'merge' char and last 'end' char from output string by default.
+        output = output.rstrip(f"{merge}{end}")
+
+        # Append 'end' to non empty output strings if it contains '\\n' to ease output to console or file.
+        return f"{output}{end}" if (output and "\n" in end) else output
 
     def get_values(self, rows, cols=":", sep=None, merge=" ", end="\n"):
         """Return all values matching the given row and column indices.
