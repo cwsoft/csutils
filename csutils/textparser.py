@@ -7,9 +7,10 @@
 # @python:  3.6 or higher
 #######################################################################################
 """
-__version__ = "1.5.0"
 import os.path
 import re
+
+__version__ = "1.6.0"
 
 
 class Textparser:
@@ -49,15 +50,19 @@ class Textparser:
         with open(path, "a" if append else "w") as outfile:
             outfile.writelines(lines)
 
-    def get_numbered_source_lines(self, output=False, nbrFormat="5d"):
+    def get_numbered_source_lines(self, output=False, nbrFormat="5d", end="\n"):
         """Return source lines prepend by their corresponding row indices.
-        Set output=True to dump the result to the console stdout."""
-        input_lines = [f"{idx:{nbrFormat}}: {line}" for idx, line in enumerate(self._lines)]
-        if not output:
-            return input_lines
+        Set output=True to dump the numbered source lines to stdout."""
+        lines = [f"{idx:{nbrFormat}}: " + line.rstrip("\n\r") + end for idx, line in enumerate(self._lines)]
+        if not lines:
+            return []
 
-        for input_line in input_lines:
-            print(input_line, end="" if input_line.endswith("\n") else "\n")
+        if not output:
+            return lines
+
+        # Ensure each input line is written out to a separate line.
+        for line in lines:
+            print(line, end="" if line.endswith("\n") else "\n")
 
     def get_lines(self, rows=":", merge="\n", end="\n"):
         """Return all textlines matching given row indices with lines joined by 'merge' char.
@@ -88,7 +93,8 @@ class Textparser:
         Supported row/col indices: 1, 1.0, '1:10:1,50:100', '1:10:1', '1,2,5', (1, 2, 5), ['1', '2.0', 5.0].
         
         The specified source rows are split into column parts using 'sep' (None:=split by whitespace).
-        Set col='0:2,2:4' ignores 'sep' and extracts values from row string indices (e.g. 'Line 1\\n'[0:2]).
+        If 'col' contains a multi-slice input string like '0:10, 10:20' the source rows are not splitted.
+        This allows to extract column parts from the source row string positions (e.g. '123'[0:2] = '12').
         By default, column values are joined with 'merge' char, rows are joined with 'end' char. The 'end'
         char is always omitted for single values and for multiple values in case 'end' does not contain '\\n'.
         """

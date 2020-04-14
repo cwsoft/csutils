@@ -56,9 +56,13 @@ class TextparserTest(unittest.TestCase):
     def test_get_numbered_source_lines(self):
         """Test method get_numbered_source_lines"""
         data = "This is line 1.\nThis is line 2.\nThis is line 3.\nThis is line 4.\n"
-        result = ["0: This is line 1.", "1: This is line 2.", "2: This is line 3.", "3: This is line 4."]
         _tp = Textparser(source=data)
+        
+        result = ["0: This is line 1.\n", "1: This is line 2.\n", "2: This is line 3.\n", "3: This is line 4.\n"]
         self.assertEqual(_tp.get_numbered_source_lines(output=False, nbrFormat="d"), result)
+
+        result = ["0: This is line 1.;", "1: This is line 2.;", "2: This is line 3.;", "3: This is line 4.;"]
+        self.assertEqual(_tp.get_numbered_source_lines(output=False, nbrFormat="d", end=";"), result)
 
     def test_get_lines_defaults(self):
         """Test method get_lines with default parameters."""
