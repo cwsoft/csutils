@@ -12,7 +12,7 @@ import setuptools
 
 setuptools.setup(
     name="csutils",
-    version="1.6.0",
+    version="1.6.1",
     author="cwsoft",
     author_email="noreply@cwsoft.de",
     description="Collection of Python modules to ease some basic tasks like dealing with textfiles.",

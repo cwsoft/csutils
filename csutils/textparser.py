@@ -10,7 +10,7 @@
 import os.path
 import re
 
-__version__ = "1.6.0"
+__version__ = "1.6.1"
 
 
 class Textparser:
@@ -72,13 +72,13 @@ class Textparser:
         """
         rows = Textparser._get_validated_indices(rows)
         if isinstance(rows, list) and isinstance(rows[0], slice):
-            # output = merge.join([merge.join(self._lines[_slice]).rstrip("\n\r") for _slice in rows])
-            output = ""
-            for _slice in rows:
-                output += merge.join([r.rstrip("\n\r") for r in self._lines[_slice]]) + merge
+            # Handle multi-slice rows: "1:10, 10:20" --> [slice(1,10,None), slice(10,20,None)].
+            output = "".join([r.rstrip("\n\r") + merge for _slice in rows for r in self._lines[_slice]])
         elif isinstance(rows, slice):
+            # Handle single slice rows: "1:10:2" --> slice(1,10,2).
             output = merge.join([line.rstrip("\n\r") for line in self._lines[rows]])
         else:
+            # Handle single and multi row inputs from comma separated string or collection.
             output = merge.join([self._lines[idx].rstrip("\n\r") for idx in rows])
 
         # Remove last 'merge' char and last 'end' char from output string by default.
@@ -102,10 +102,13 @@ class Textparser:
         output, input_lines = "", self.get_lines(rows).splitlines()
         for line in input_lines:
             if line:
+                # Handle multi-slice cols: "1:10, 10:20" --> [slice(1,10,None), slice(10,20,None)].
                 if isinstance(cols, list) and isinstance(cols[0], slice):
                     output += f"{merge.join([line[_slice].strip() for _slice in cols])}{end}"
+                # Handle single slice cols: "1:10:2" --> slice(1,10,2).
                 elif isinstance(cols, slice):
                     output += f"{merge.join([col.strip() for col in line.split(sep)[cols]])}{end}"
+                # Handle single and multi col inputs from comma separated string or collection.
                 else:
                     output += f"{merge.join([line.split(sep)[idx].strip() for idx in cols])}{end}"
 
@@ -192,11 +195,12 @@ class Textparser:
     @staticmethod
     def _get_compiled_regex(pattern, ignoreCase):
         """Return a compiled regex for the given pattern considering case flag."""
-        if not pattern.startswith("rx:"):
+        regex = pattern[3:]
+        if not pattern.startswith("rx:") or not regex:
             return None
 
         # Create a compiled reges from given pattern.
-        return re.compile(pattern[3:], re.IGNORECASE) if ignoreCase else re.compile(pattern[3:])
+        return re.compile(regex, re.IGNORECASE) if ignoreCase else re.compile(regex)
 
     def _do_subpattern_match(self, row, subpatterns, ignoreCase):
         """Return True if all defined subpattern do match, otherwise False.
