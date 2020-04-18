@@ -78,7 +78,7 @@ class Textparser:
             # Handle single slice rows: "1:10:2" --> slice(1,10,2).
             output = merge.join([line.rstrip("\n\r") for line in self._lines[rows]])
         else:
-            # Handle single and multi row inputs from comma separated string or collection.
+            # Handle number row and string inputs: 1, 1.0, "1", "1,2,3" --> [1], [1], [1], [1, 2, 3].
             output = merge.join([self._lines[idx].rstrip("\n\r") for idx in rows])
 
         # Remove last 'merge' char and last 'end' char from output string by default.
@@ -108,7 +108,7 @@ class Textparser:
                 # Handle single slice cols: "1:10:2" --> slice(1,10,2).
                 elif isinstance(cols, slice):
                     output += f"{merge.join([col.strip() for col in line.split(sep)[cols]])}{end}"
-                # Handle single and multi col inputs from comma separated string or collection.
+                # Handle number col and string inputs: 1, 1.0, "1", "1,2,3" --> [1], [1], [1], [1, 2, 3].
                 else:
                     output += f"{merge.join([line.split(sep)[idx].strip() for idx in cols])}{end}"
 
