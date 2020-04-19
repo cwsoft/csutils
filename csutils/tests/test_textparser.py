@@ -57,12 +57,33 @@ class TextparserTest(unittest.TestCase):
         """Test method get_numbered_source_lines"""
         data = "This is line 1.\nThis is line 2.\nThis is line 3.\nThis is line 4.\n"
         _tp = Textparser(source=data)
-        
-        result = ["0: This is line 1.\n", "1: This is line 2.\n", "2: This is line 3.\n", "3: This is line 4.\n"]
+        result = [
+            "0: This is line 1.\n",
+            "1: This is line 2.\n",
+            "2: This is line 3.\n",
+            "3: This is line 4.\n",
+        ]
         self.assertEqual(_tp.get_numbered_source_lines(output=False, nbrFormat="d"), result)
 
+        # Testing custom nbrFormat and end string.
         result = ["0: This is line 1.;", "1: This is line 2.;", "2: This is line 3.;", "3: This is line 4.;"]
         self.assertEqual(_tp.get_numbered_source_lines(output=False, nbrFormat="d", end=";"), result)
+
+        # Testing string output to console (redirect stdout to file and reset afterwards)
+        result = "0: This is line 1.\n1: This is line 2.\n2: This is line 3.\n3: This is line 4.\n"
+        default = sys.stdout
+        with open("./dummy.tmp", mode="w") as outfile:
+            sys.stdout = outfile
+            _tp.get_numbered_source_lines(output=True, nbrFormat="d", end="")
+            sys.stdout.close()
+        sys.stdout = default
+        _tp.from_source(source="./dummy.tmp")
+        self.assertEqual(_tp.get_lines(), result)
+        os.remove("./dummy.tmp")
+
+        # Testing empty source output.
+        _tp.from_source(source="")
+        self.assertEqual(_tp.get_numbered_source_lines(output=False), [])
 
     def test_get_lines_defaults(self):
         """Test method get_lines with default parameters."""
@@ -269,3 +290,7 @@ class TextparserTest(unittest.TestCase):
 
         matches = tp.get_matches(pattern="rx:Freq", subpatterns=(-999, "rx:[0-9]{2}"))
         self.assertEqual(matches, [(None, None)])
+
+
+if __name__ == "__main__":
+    unittest.main()
