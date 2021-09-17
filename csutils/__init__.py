@@ -4,7 +4,7 @@
 #
 # @package: csutils
 # @author:  cwsoft
-# @python:  3.6 or higher
+# @python:  3.8 or higher
 #######################################################################################
 """
 from .textparser import *

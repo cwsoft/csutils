@@ -5,20 +5,21 @@
 #
 # @package: csutils.textparser
 # @author:  cwsoft
-# @python:  3.6 or higher
+# @python:  3.8 or higher
 #######################################################################################
 """
-import os
 import sys
 import unittest
+
+from pathlib import Path
 from pprint import pprint
 
 # Monkey patch system path so we can access the csutils package without installing it.
-sys.path.append(os.path.abspath(r"../../"))
+sys.path.append(Path(r"../../").resolve())
 from csutils.textparser import Textparser
 
 # Global values
-INPUT_FILE = os.path.abspath(r"./data/test.dat")
+INPUT_FILE = Path(r"./data/test.dat").resolve()
 tp = Textparser(source=INPUT_FILE)
 
 
@@ -28,7 +29,7 @@ class TextparserTest(unittest.TestCase):
         self.assertEqual(
             str(tp), f"<Textparser: Source '{INPUT_FILE}' with 20 lines>",
         )
-        self.assertEqual(tp.source, INPUT_FILE)
+        self.assertEqual(tp.source, str(INPUT_FILE))
         self.assertEqual(tp.lines, 20)
 
     def test_properties_string(self):
@@ -49,7 +50,7 @@ class TextparserTest(unittest.TestCase):
         output = data + data
         result = [f"{line}\n" for line in output.split("\n")][0:4]
         _tp = Textparser(source=r"./tmp.out")
-        os.remove(r"./tmp.out")
+        Path(r"./tmp.out").unlink()
 
         self.assertEqual(_tp._lines, result)
 
@@ -79,7 +80,7 @@ class TextparserTest(unittest.TestCase):
         sys.stdout = default
         _tp.from_source(source="./dummy.tmp")
         self.assertEqual(_tp.get_lines(), result)
-        os.remove("./dummy.tmp")
+        Path("./dummy.tmp").unlink()
 
         # Testing empty source output.
         _tp.from_source(source="")
@@ -223,9 +224,7 @@ class TextparserTest(unittest.TestCase):
         matches = tp.get_match(pattern="rx:FREQ", subpatterns=(-1, "rx:[0-9]{2}"), ignoreCase=False)
         self.assertEqual(matches, result[1])
 
-        matches = tp.get_match(
-            pattern="rx:Freq", subpatterns=[(1, "rx:[0-9]{2}"), (-1, "DUMMY")], ignoreCase=False
-        )
+        matches = tp.get_match(pattern="rx:Freq", subpatterns=[(1, "rx:[0-9]{2}"), (-1, "DUMMY")], ignoreCase=False)
         self.assertEqual(matches, (None, None))
 
     def test_get_matches(self):
@@ -272,16 +271,11 @@ class TextparserTest(unittest.TestCase):
         matches = tp.get_matches(pattern="rx:Freq", subpatterns=[(1, "rx:[0-9]{2}"), (-1, "DUMMY")])
         self.assertEqual(matches, [result[0]])
 
-        matches = tp.get_matches(
-            pattern="rx:Freq", subpatterns=[(1, "rx:[0-9]{2}"), (-1, "DUMMY")], ignoreCase=False
-        )
+        matches = tp.get_matches(pattern="rx:Freq", subpatterns=[(1, "rx:[0-9]{2}"), (-1, "DUMMY")], ignoreCase=False)
         self.assertEqual(matches, [(None, None)])
 
         matches = tp.get_matches(
-            pattern="rx:Freq",
-            subpatterns=[(1, "rx:[0-9]{2}"), (-1, "DUMMY")],
-            ignoreCase=False,
-            findAll=False,
+            pattern="rx:Freq", subpatterns=[(1, "rx:[0-9]{2}"), (-1, "DUMMY")], ignoreCase=False, findAll=False,
         )
         self.assertEqual(matches, (None, None))
 

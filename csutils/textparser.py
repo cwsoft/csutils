@@ -4,10 +4,10 @@
 #
 # @package: csutils.textparser
 # @author:  cwsoft
-# @python:  3.6 or higher
+# @python:  3.8 or higher
 #######################################################################################
 """
-import os.path
+from pathlib import Path
 import re
 
 __version__ = "1.0.0"
@@ -37,10 +37,10 @@ class Textparser:
     def from_source(self, source):
         """Read all textlines from specified source into memory and store data in _lines.
         Source can be a valid textfile path or an input string."""
-        self._source, self._lines = "String", []
-        if os.path.exists(source):
+        self._source, self._lines, sourcePath = "String", [], Path(source)
+        if sourcePath.exists():
             with open(source, "r") as infile:
-                self._source, self._lines = os.path.abspath(source), infile.readlines()
+                self._source, self._lines = sourcePath.resolve(), infile.readlines()
             return
         self._lines = source.splitlines()
 
@@ -91,7 +91,7 @@ class Textparser:
         """Return all values matching the given row and column indices.
         Row and col indices can be a number, slice or comma separated string, or a container with indices.
         Supported row/col indices: 1, 1.0, '1:10:1,50:100', '1:10:1', '1,2,5', (1, 2, 5), ['1', '2.0', 5.0].
-        
+
         The specified source rows are split into column parts using 'sep' (None:=split by whitespace).
         If 'col' contains a multi-slice input string like '0:10, 10:20' the source rows are not splitted.
         This allows to extract column parts from the source row string positions (e.g. '123'[0:2] = '12').
@@ -123,7 +123,7 @@ class Textparser:
         To narrow down matches, one can specify as many optional subpatterns as needed. Subpatterns are
         evaluated relative to the line matching the main pattern using the specified rowOffset. Subpatterns
         are defined as follows: subpatterns = [(rowOffset1, subPattern1), ..., (rowOffsetN, subPatternN)].
-        
+
         Note: Patterns starting with 'rx:' will perform a regular expression search on the source lines.
         Set ignoreCase=False to perform a case sensitive search on all specified search patterns.
         """
@@ -134,7 +134,7 @@ class Textparser:
         To narrow down matches, one can specify as many optional subpatterns as needed. Subpatterns are
         evaluated relative to the line matching the main pattern using the specified rowOffset. Subpatterns
         are defined as follows: subpatterns = [(rowOffset1, subPattern1), ..., (rowOffsetN, subPatternN)].
-        
+
         Note: Patterns starting with 'rx:' will perform a regular expression search on the source lines.
         Set ignoreCase=False to perform a case sensitive search on all specified search patterns.
         Set findAll=False to return a tuple with row index and textline of the first matching result only.
