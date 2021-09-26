@@ -39,7 +39,7 @@ class Textparser:
         Source can be a valid textfile path or an input string."""
         self._source, self._lines, sourcePath = "String", [], Path(source)
         if sourcePath.exists():
-            with open(source, "r") as infile:
+            with sourcePath.open(mode="r") as infile:
                 self._source, self._lines = sourcePath.resolve(), infile.readlines()
             return
         self._lines = source.splitlines()
@@ -47,7 +47,7 @@ class Textparser:
     @staticmethod
     def write(path, lines, append=True):
         """Write or append input lines to textfile defined by the path string."""
-        with open(path, "a" if append else "w") as outfile:
+        with Path(path).open(mode="a" if append else "w") as outfile:
             outfile.writelines(lines)
 
     def get_numbered_source_lines(self, output=False, nbrFormat="5d", end="\n"):
